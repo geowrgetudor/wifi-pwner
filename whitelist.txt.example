@@ -1,0 +1,8 @@
+# WiFi Pwner Whitelist
+# Add BSSIDs (MAC addresses) to skip during scanning
+# One BSSID per line, format: XX:XX:XX:XX:XX:XX
+# Lines starting with # are comments
+
+# Example entries:
+# 00:11:22:33:44:55
+# AA:BB:CC:DD:EE:FF

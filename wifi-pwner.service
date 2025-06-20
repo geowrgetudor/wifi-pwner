@@ -1,0 +1,17 @@
+[Unit]
+Description=WiFi Pwner Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sleep 60
+ExecStart=WIFI_PWNER_PATH/wifi-pwner WIFI_PWNER_ARGS
+WorkingDirectory=WIFI_PWNER_PATH
+Restart=always
+RestartSec=5
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
