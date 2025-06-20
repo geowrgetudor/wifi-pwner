@@ -1,10 +1,10 @@
 # WiFi Pwner
 
-A fast, mobile-optimized WiFi handshake capture tool built on top of Bettercap for Raspberry Pi.
+A fast, mobile-optimized WiFi handshake capture tool built on top of Bettercap.
 
 ## Features
 
-- **Mobile-First Design**: Optimized for Raspberry Pi on the move
+- **Mobile-First Design**: Optimized for Raspberry Pi on the move, but works on any Linux distro
 - **Smart Target Selection**: Automatically targets the strongest AP with clients
 - **Fast Capture**: ~20 seconds per attempt
 - **Web Dashboard**: Real-time monitoring on port 8080 (optional)
@@ -15,31 +15,38 @@ A fast, mobile-optimized WiFi handshake capture tool built on top of Bettercap f
 
 ## Hardware Requirements
 
-- Raspberry Pi
-- External WiFi adapter with Monitor support
+- Raspberry Pi (3 / 4 / 400 / 5) or any Laptop/PC with a Linux distro
+- External WiFi adapter with monitor mode & package injection support
 
 ## Software Requirements
 
 - Ubuntu Server 24 or similar Linux distribution
 - Go 1.21+
-- Bettercap
-- Aircrack-ng (for handshake verification)
+- [Bettercap](https://github.com/bettercap/bettercap)
+- [Aircrack-ng](https://github.com/aircrack-ng/aircrack-ng)
 - SQLite3
 
 ## Installation
+
+The installation guide is for Debian based Linux distros, but it should be similar for other distros.
 
 ### Option 1: Download Pre-built Binary (Recommended)
 
 1. Download the appropriate binary for your system from the [releases page](https://github.com/georgegebbett/wifi-pwner/releases)
 2. Extract the archive:
+
 ```bash
 tar -xzf wifi-pwner_linux_amd64.tar.gz
 ```
+
 3. Make the binary executable:
+
 ```bash
 chmod +x wifi-pwner
 ```
+
 4. Install system dependencies:
+
 ```bash
 sudo apt update
 sudo apt install -y bettercap aircrack-ng sqlite3

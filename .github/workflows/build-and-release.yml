@@ -6,15 +6,15 @@ permissions:
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - "[0-9]+.[0-9]+.[0-9]+"
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to build release for'
+        description: "Tag to build release for"
         required: true
-        default: 'v1.0.0'
+        default: "v1.0.0"
 
 jobs:
   build:
@@ -40,208 +40,202 @@ jobs:
             cgo: 1
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
 
-    - name: Install cross-compilation dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc-multilib
-        
-        # Install cross-compilation toolchains for ARM
-        sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
-        
-        # Install SQLite development packages for cross-compilation
-        sudo apt-get install -y libsqlite3-dev
+      - name: Install cross-compilation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib
 
-    - name: Set up cross-compilation environment
-      run: |
-        case "${{ matrix.goos }}_${{ matrix.goarch }}" in
-          linux_arm64)
-            echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-            echo "CXX=aarch64-linux-gnu-g++" >> $GITHUB_ENV
-            ;;
-          linux_arm)
-            echo "CC=arm-linux-gnueabihf-gcc" >> $GITHUB_ENV
-            echo "CXX=arm-linux-gnueabihf-g++" >> $GITHUB_ENV
-            ;;
-        esac
+          # Install cross-compilation toolchains for ARM
+          sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
 
-    - name: Build binary
-      env:
-        GOOS: ${{ matrix.goos }}
-        GOARCH: ${{ matrix.goarch }}
-        GOARM: ${{ matrix.goarm }}
-        CGO_ENABLED: ${{ matrix.cgo }}
-      run: |
-        echo "Building for ${{ matrix.goos }}/${{ matrix.goarch }}${{ matrix.goarm && format('v{0}', matrix.goarm) || '' }}"
-        mkdir -p dist
-        
-        # Set binary name with extension for Windows
-        BINARY_NAME="wifi-pwner"
-        if [ "${{ matrix.goos }}" = "windows" ]; then
-          BINARY_NAME="${BINARY_NAME}.exe"
-        fi
-        
-        # Build the binary
-        go build -v -o "dist/${BINARY_NAME}" .
-        
-        # Create archive name
-        ARCHIVE_NAME="wifi-pwner_${{ matrix.goos }}_${{ matrix.goarch }}"
-        if [ -n "${{ matrix.goarm }}" ]; then
-          ARCHIVE_NAME="${ARCHIVE_NAME}v${{ matrix.goarm }}"
-        fi
-        
-        # Copy additional files
-        cp whitelist.txt.example "dist/whitelist.txt.example"
-        cp README.md "dist/README.md"
-        
-        # Create archive
-        cd dist
-        if [ "${{ matrix.goos }}" = "windows" ]; then
-          zip -r "../${ARCHIVE_NAME}.zip" .
-        else
-          tar -czf "../${ARCHIVE_NAME}.tar.gz" .
-        fi
-        cd ..
-        
-        # List what we built
-        ls -la *.tar.gz *.zip || true
+          # Install SQLite development packages for cross-compilation
+          sudo apt-get install -y libsqlite3-dev
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goarm && format('v{0}', matrix.goarm) || '' }}
-        path: |
-          *.tar.gz
-          *.zip
-        retention-days: 7
+      - name: Set up cross-compilation environment
+        run: |
+          case "${{ matrix.goos }}_${{ matrix.goarch }}" in
+            linux_arm64)
+              echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+              echo "CXX=aarch64-linux-gnu-g++" >> $GITHUB_ENV
+              ;;
+            linux_arm)
+              echo "CC=arm-linux-gnueabihf-gcc" >> $GITHUB_ENV
+              echo "CXX=arm-linux-gnueabihf-g++" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+          CGO_ENABLED: ${{ matrix.cgo }}
+        run: |
+          echo "Building for ${{ matrix.goos }}/${{ matrix.goarch }}${{ matrix.goarm && format('v{0}', matrix.goarm) || '' }}"
+          mkdir -p dist
+
+          # Set binary name with extension for Windows
+          BINARY_NAME="wifi-pwner"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            BINARY_NAME="${BINARY_NAME}.exe"
+          fi
+
+          # Build the binary
+          go build -v -o "dist/${BINARY_NAME}" .
+
+          # Create archive name
+          ARCHIVE_NAME="wifi-pwner_${{ matrix.goos }}_${{ matrix.goarch }}"
+          if [ -n "${{ matrix.goarm }}" ]; then
+            ARCHIVE_NAME="${ARCHIVE_NAME}v${{ matrix.goarm }}"
+          fi
+
+          # Copy additional files
+          cp whitelist.txt.example "dist/whitelist.txt.example"
+          cp README.md "dist/README.md"
+
+          # Create archive
+          cd dist
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            zip -r "../${ARCHIVE_NAME}.zip" .
+          else
+            tar -czf "../${ARCHIVE_NAME}.tar.gz" .
+          fi
+          cd ..
+
+          # List what we built
+          ls -la *.tar.gz *.zip || true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goarm && format('v{0}', matrix.goarm) || '' }}
+          path: |
+            *.tar.gz
+            *.zip
+          retention-days: 7
 
   release:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-    
-    - name: Prepare release assets
-      run: |
-        mkdir -p release
-        find artifacts -name "*.tar.gz" -o -name "*.zip" | while read file; do
-          cp "$file" release/
-        done
-        ls -la release/
-    
-    - name: Generate release notes
-      id: release_notes
-      run: |
-        # Extract version from tag or input
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          VERSION="${{ github.event.inputs.tag }}"
-        else
-          VERSION=${GITHUB_REF#refs/tags/}
-        fi
-        
-        # Create release notes
-        cat > release_notes.md << EOF
-        # WiFi Pwner ${VERSION}
-        
-        ## Download
-        
-        Choose the appropriate binary for your system:
-        
-        ### Linux
-        - **AMD64 (x86_64)**: \`wifi-pwner_linux_amd64.tar.gz\`
-        - **ARM64 (aarch64)**: \`wifi-pwner_linux_arm64.tar.gz\`
-        - **ARMv7**: \`wifi-pwner_linux_armv7.tar.gz\`
-        - **ARMv6**: \`wifi-pwner_linux_armv6.tar.gz\`
-        
-        ## Installation
-        
-        ### Option 1: Download Pre-built Binary (Recommended)
-        
-        1. Download the appropriate binary for your system from the [releases page](https://github.com/$(echo ${GITHUB_REPOSITORY})/releases)
-        2. Extract the archive: \`tar -xzf wifi-pwner_linux_amd64.tar.gz\`
-        3. Make the binary executable: \`chmod +x wifi-pwner\`
-        4. Follow the installation instructions in the README
-        
-        ### Option 2: Build from Source
-        
-        1. Clone the repository: \`git clone https://github.com/$(echo ${GITHUB_REPOSITORY}).git\`
-        2. Install dependencies: \`go mod download\`
-        3. Build: \`go build -o wifi-pwner .\`
-        4. Follow the installation instructions in the README
-        
-        ## Requirements
-        
-        - Root/Administrator privileges
-        - WiFi adapter with monitor mode support
-        - Bettercap and Aircrack-ng installed
-        
-        ## Usage
-        
-        \`\`\`bash
-        sudo ./wifi-pwner --interface wlan0
-        \`\`\`
-        
-        For more information, see the README.md file included in the download.
-        
-        ## Security Notice
-        
-        This tool is for educational and authorized security testing purposes only. Always ensure you have explicit permission before testing on any network.
-        EOF
-        
-        echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
-        cat release_notes.md >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-    
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: release/*
-        body: ${{ steps.release_notes.outputs.RELEASE_NOTES }}
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          find artifacts -name "*.tar.gz" -o -name "*.zip" | while read file; do
+            cp "$file" release/
+          done
+          ls -la release/
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          # Extract version from tag or input
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.tag }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+
+          # Create release notes
+          cat > release_notes.md << EOF
+          # WiFi Pwner ${VERSION}
+
+          ## Download
+
+          Choose the appropriate binary for your system:
+
+          ### Linux
+          - **AMD64 (x86_64)**: \`wifi-pwner_linux_amd64.tar.gz\`
+          - **ARM64 (aarch64)**: \`wifi-pwner_linux_arm64.tar.gz\`
+          - **ARMv7**: \`wifi-pwner_linux_armv7.tar.gz\`
+          - **ARMv6**: \`wifi-pwner_linux_armv6.tar.gz\`
+
+          ## Installation
+
+          1. Download the appropriate binary for your system
+          2. Extract the archive: \`tar -xzf wifi-pwner_linux_amd64.tar.gz\`
+          3. Make the binary executable: \`chmod +x wifi-pwner\`
+          4. Follow the installation instructions in the README
+
+          ## Requirements
+
+          - Root/Administrator privileges
+          - WiFi adapter with monitor mode support
+          - [Bettercap](https://github.com/bettercap/bettercap)
+          - [Aircrack-ng](https://github.com/aircrack-ng/aircrack-ng)
+          - [SQLite3](https://www.sqlite.org/)
+          - [Go 1.21+](https://golang.org/) (for building from source)
+
+          ## Usage
+
+          \`\`\`bash
+          sudo ./wifi-pwner --interface wlan0
+          \`\`\`
+
+          For more information, see [README.md](https://github.com/geowrgetudor/wifi-pwner/blob/main/README.md).
+
+          ## Security Notice
+
+          This tool is for educational and authorized security testing purposes only. Always ensure you have explicit permission before testing on any network.
+          EOF
+
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          cat release_notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*
+          body: ${{ steps.release_notes.outputs.RELEASE_NOTES }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
     name: Test Build
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
-    
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libsqlite3-dev
-    
-    - name: Run tests
-      run: |
-        go mod download
-        go test -v ./...
-    
-    - name: Build test
-      run: |
-        go build -v .
-    
-    - name: Verify binary
-      run: |
-        ./wifi-pwner --help || echo "Binary built successfully (exit code expected for help)"
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsqlite3-dev
+
+      - name: Run tests
+        run: |
+          go mod download
+          go test -v ./...
+
+      - name: Build test
+        run: |
+          go build -v .
+
+      - name: Verify binary
+        run: |
+          ./wifi-pwner --help || echo "Binary built successfully (exit code expected for help)"
