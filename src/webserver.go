@@ -102,19 +102,74 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
     </script>
     <script>
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                // Show a temporary success message
-                const button = event.target;
-                const originalText = button.innerHTML;
-                button.innerHTML = '✓ Copied!';
-                button.classList.add('bg-green-500');
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('bg-green-500');
-                }, 2000);
-            }, function(err) {
-                console.error('Could not copy text: ', err);
-            });
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopySuccess(button, originalText);
+                }, function(err) {
+                    console.error('Clipboard API failed: ', err);
+                    fallbackCopyTextToClipboard(text, button, originalText);
+                });
+            } else {
+                // Fallback for older browsers or HTTP contexts
+                fallbackCopyTextToClipboard(text, button, originalText);
+            }
+        }
+        
+        function fallbackCopyTextToClipboard(text, button, originalText) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Avoid scrolling to bottom
+            textArea.style.position = "fixed";
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.width = "2em";
+            textArea.style.height = "2em";
+            textArea.style.padding = "0";
+            textArea.style.border = "none";
+            textArea.style.outline = "none";
+            textArea.style.boxShadow = "none";
+            textArea.style.background = "transparent";
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopySuccess(button, originalText);
+                } else {
+                    showCopyError(button, originalText);
+                }
+            } catch (err) {
+                console.error('Fallback copy failed: ', err);
+                showCopyError(button, originalText);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        function showCopySuccess(button, originalText) {
+            button.innerHTML = '✓ Copied!';
+            button.classList.add('bg-green-500');
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('bg-green-500');
+            }, 2000);
+        }
+        
+        function showCopyError(button, originalText) {
+            button.innerHTML = '✗ Error';
+            button.classList.add('bg-red-500');
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('bg-red-500');
+            }, 2000);
         }
     </script>
 </head>

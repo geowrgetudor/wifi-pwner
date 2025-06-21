@@ -91,7 +91,7 @@ func AddToCrackQueue(bssid, essid, handshakePath string) {
 
 func (c *Cracker) crackingWorker() {
 	defer c.wg.Done()
-	
+
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 
@@ -135,8 +135,8 @@ func (c *Cracker) processQueue() {
 }
 
 func (c *Cracker) crackTarget(target CrackTarget) {
-	cmd := exec.Command("aircrack-ng", target.HandshakePath, "-w", c.wordlistPath, "-q")
-	
+	cmd := exec.Command("aircrack-ng", "-b", target.BSSID, "-w", c.wordlistPath, "-q", target.HandshakePath)
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Printf("[CRACKER] Failed to create stdout pipe: %v", err)
@@ -156,16 +156,22 @@ func (c *Cracker) crackTarget(target CrackTarget) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
+		// Debug log to see all output
+		if line != "" && !strings.Contains(line, "Reading packets") {
+			log.Printf("[CRACKER DEBUG] Output: %s", line)
+		}
+
 		// Only log important lines, not the progress output
 		if strings.Contains(line, "KEY FOUND!") {
-			log.Printf("[CRACKER] %s", line)
+			log.Printf("[CRACKER] Found key line: %s", line)
 			parts := strings.Split(line, "[")
 			if len(parts) >= 2 {
 				keyPart := strings.Split(parts[1], "]")
 				if len(keyPart) >= 1 {
 					password = strings.TrimSpace(keyPart[0])
 					cracked = true
+					log.Printf("[CRACKER] Extracted password: %s", password)
 					break
 				}
 			}
@@ -187,8 +193,5 @@ func (c *Cracker) crackTarget(target CrackTarget) {
 	if cracked && password != "" {
 		log.Printf("[CRACKER] SUCCESS! Cracked %s (%s): %s", target.ESSID, target.BSSID, password)
 		c.db.UpdateTargetPassword(target.BSSID, password, StatusCracked)
-	} else {
-		log.Printf("[CRACKER] FAILED to crack %s (%s)", target.ESSID, target.BSSID)
-		c.db.UpdateTargetPassword(target.BSSID, "", StatusFailedToCrack)
 	}
 }
