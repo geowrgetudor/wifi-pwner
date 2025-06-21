@@ -135,7 +135,7 @@ func (c *Cracker) processQueue() {
 }
 
 func (c *Cracker) crackTarget(target CrackTarget) {
-	cmd := exec.Command("aircrack-ng", target.HandshakePath, "-w", c.wordlistPath)
+	cmd := exec.Command("aircrack-ng", target.HandshakePath, "-w", c.wordlistPath, "-q")
 	
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -156,9 +156,10 @@ func (c *Cracker) crackTarget(target CrackTarget) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		log.Printf("[CRACKER] %s", line)
 		
+		// Only log important lines, not the progress output
 		if strings.Contains(line, "KEY FOUND!") {
+			log.Printf("[CRACKER] %s", line)
 			parts := strings.Split(line, "[")
 			if len(parts) >= 2 {
 				keyPart := strings.Split(parts[1], "]")
@@ -168,12 +169,18 @@ func (c *Cracker) crackTarget(target CrackTarget) {
 					break
 				}
 			}
+		} else if strings.Contains(line, "Choosing first network") ||
+			strings.Contains(line, "potential targets") ||
+			strings.Contains(line, "handshake") ||
+			strings.Contains(line, "WPA") {
+			// Log these informational lines but suppress progress
+			continue
 		}
 	}
 
 	if err := cmd.Wait(); err != nil {
 		if !cracked {
-			log.Printf("[CRACKER] aircrack-ng failed for %s (%s): %v", target.ESSID, target.BSSID, err)
+			log.Printf("[CRACKER] Failed to crack %s (%s)", target.ESSID, target.BSSID)
 		}
 	}
 
