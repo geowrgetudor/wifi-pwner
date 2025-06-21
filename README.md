@@ -1,6 +1,6 @@
 # WiFi Pwner
 
-A fast, mobile-optimized WiFi handshake capture tool built on top of Bettercap.
+A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capture & cracking tool built on top of Bettercap & Aircrack-ng. Run WiFi Pwner on your Pi (as service) and start pwning without breaking a sweat.
 
 ## Features
 
@@ -147,6 +147,7 @@ WiFi Pwner includes built-in automatic WPA2 handshake cracking functionality usi
 ### Usage
 
 1. **Enable autocrack mode** when starting wifi-pwner:
+
    ```bash
    sudo ./dist/wifi-pwner --interface wlan0 --autocrack --wordlist ./dist/rockyou.txt
    ```
@@ -165,7 +166,8 @@ WiFi Pwner includes built-in automatic WPA2 handshake cracking functionality usi
 ### Wordlist Management
 
 The build script can automatically download the popular rockyou.txt wordlist:
-- **Size**: ~130MB compressed, ~540MB uncompressed  
+
+- **Size**: ~130MB compressed, ~540MB uncompressed
 - **Passwords**: 14+ million common passwords
 - **Location**: Saved to `dist/rockyou.txt`
 - **Manual download**: https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt
