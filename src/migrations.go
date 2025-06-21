@@ -14,10 +14,9 @@ type Migration struct {
 var migrations = []Migration{
 	{
 		ID:          1,
-		Description: "Add cracked_password and crack_attempted columns",
+		Description: "Add cracked_password column",
 		SQL: `
 			ALTER TABLE scanned ADD COLUMN cracked_password TEXT;
-			ALTER TABLE scanned ADD COLUMN crack_attempted BOOLEAN DEFAULT 0;
 		`,
 	},
 }
@@ -50,7 +49,7 @@ func (d *Database) RunMigrations() error {
 
 		// Apply migration
 		log.Printf("[MIGRATION] Applying migration %d: %s", migration.ID, migration.Description)
-		
+
 		// Start transaction
 		tx, err := d.db.Begin()
 		if err != nil {
@@ -65,7 +64,7 @@ func (d *Database) RunMigrations() error {
 			if isColumnExistsError(err) {
 				log.Printf("[MIGRATION] Migration %d: columns already exist, marking as applied", migration.ID)
 				// Mark migration as applied anyway
-				_, err = d.db.Exec("INSERT INTO migrations (id, description) VALUES (?, ?)", 
+				_, err = d.db.Exec("INSERT INTO migrations (id, description) VALUES (?, ?)",
 					migration.ID, migration.Description)
 				if err != nil {
 					return fmt.Errorf("failed to mark migration %d as applied: %v", migration.ID, err)
@@ -76,7 +75,7 @@ func (d *Database) RunMigrations() error {
 		}
 
 		// Record migration as applied
-		_, err = tx.Exec("INSERT INTO migrations (id, description) VALUES (?, ?)", 
+		_, err = tx.Exec("INSERT INTO migrations (id, description) VALUES (?, ?)",
 			migration.ID, migration.Description)
 		if err != nil {
 			tx.Rollback()
@@ -97,12 +96,12 @@ func (d *Database) RunMigrations() error {
 func isColumnExistsError(err error) bool {
 	// SQLite error for duplicate column
 	errStr := err.Error()
-	return contains(errStr, "duplicate column name") || 
+	return contains(errStr, "duplicate column name") ||
 		contains(errStr, "already exists")
 }
 
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
+	return len(s) >= len(substr) &&
 		(s == substr || len(s) > 0 && containsHelper(s, substr))
 }
 

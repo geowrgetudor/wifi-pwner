@@ -74,7 +74,7 @@ func (d *Database) SaveTarget(target *Target, handshakePath string, status Statu
 func (d *Database) UpdateTargetPassword(bssid string, password string, status Status) error {
 	_, err := d.db.Exec(`
 		UPDATE scanned 
-		SET cracked_password = ?, status = ?, crack_attempted = 1
+		SET cracked_password = ?, status = ?
 		WHERE bssid = ?`,
 		password,
 		string(status),
