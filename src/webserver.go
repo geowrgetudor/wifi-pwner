@@ -63,7 +63,7 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
 
 	encryptions, _ := w.db.GetUniqueEncryptions()
 	channels, _ := w.db.GetUniqueChannels()
-	statuses, _ := w.db.GetUniqueStatuses()
+	statuses := GetAllStatuses()
 
 	data := DashboardData{
 		Result:      result,

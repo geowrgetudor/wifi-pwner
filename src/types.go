@@ -23,6 +23,19 @@ const (
 	StatusFailedToCrack     Status = "Failed to crack"
 )
 
+// GetAllStatuses returns all possible status values
+func GetAllStatuses() []string {
+	return []string{
+		string(StatusDiscovered),
+		string(StatusScanning),
+		string(StatusFailedToScan),
+		string(StatusFailedToCap),
+		string(StatusHandshakeCaptured),
+		string(StatusCracked),
+		string(StatusFailedToCrack),
+	}
+}
+
 type Config struct {
 	Interface          string
 	Mode               string
