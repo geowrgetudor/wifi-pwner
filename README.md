@@ -12,6 +12,8 @@ A fast, mobile-optimized WiFi handshake capture tool built on top of Bettercap.
 - **MAC Address Randomization**: Changes MAC address before each session for anonymity
 - **Whitelist Support**: Skip specific BSSIDs
 - **Clean Storage**: Only successful captures are saved
+- **Automatic Password Cracking**: Built-in WPA2 handshake cracking using aircrack-ng
+- **Wordlist Support**: Download and use popular wordlists like rockyou.txt
 
 ## Hardware Requirements
 
@@ -83,6 +85,7 @@ The build script will:
 
 - Compile the project to `dist/wifi-pwner`
 - Copy the whitelist template if it doesn't exist
+- Optionally download the rockyou.txt wordlist for password cracking
 - Optionally set up a systemd service for auto-start
 
 ## Usage
@@ -101,6 +104,8 @@ sudo ./dist/wifi-pwner --interface wlan0
 - `--b-api-port`: Bettercap API port (default: `8081`)
 - `--b-expose`: Expose Bettercap API on 0.0.0.0 instead of 127.0.0.1
 - `--webui`: Enable custom web UI on port 8080 (default: `true`)
+- `--autocrack`: Enable automatic WPA2 handshake cracking
+- `--wordlist`: Path to wordlist file for cracking (required if --autocrack is used)
 
 ### Examples
 
@@ -119,16 +124,63 @@ sudo ./dist/wifi-pwner --interface wlan0 --b-expose
 
 # Disable web UI
 sudo ./dist/wifi-pwner --interface wlan0 --webui=false
+
+# Enable automatic cracking with rockyou.txt wordlist
+sudo ./dist/wifi-pwner --interface wlan0 --autocrack --wordlist ./dist/rockyou.txt
+
+# Enable automatic cracking with custom wordlist
+sudo ./dist/wifi-pwner --interface wlan0 --autocrack --wordlist /path/to/custom/wordlist.txt
 ```
+
+## Automatic Password Cracking
+
+WiFi Pwner includes built-in automatic WPA2 handshake cracking functionality using aircrack-ng:
+
+### Features
+
+- **Automatic Processing**: Captured handshakes are automatically queued for cracking
+- **Background Operation**: Cracking runs in parallel with scanning and capturing
+- **Database Integration**: Cracked passwords are saved to the database
+- **Status Tracking**: Track cracking attempts and results through the web interface
+- **Wordlist Support**: Use popular wordlists like rockyou.txt
+
+### Usage
+
+1. **Enable autocrack mode** when starting wifi-pwner:
+   ```bash
+   sudo ./dist/wifi-pwner --interface wlan0 --autocrack --wordlist ./dist/rockyou.txt
+   ```
+
+2. **Download wordlist** during build (recommended):
+   The build script will offer to download rockyou.txt automatically.
+
+3. **Monitor progress** through the web interface at `http://localhost:8080`
+
+### Status Meanings
+
+- **Handshake Captured**: Ready for cracking
+- **Cracked**: Password successfully recovered
+- **Failed to crack**: Password not found in wordlist
+
+### Wordlist Management
+
+The build script can automatically download the popular rockyou.txt wordlist:
+- **Size**: ~130MB compressed, ~540MB uncompressed  
+- **Passwords**: 14+ million common passwords
+- **Location**: Saved to `dist/rockyou.txt`
+- **Manual download**: https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt
+
+You can also use custom wordlists by specifying the path with `--wordlist`.
 
 ## Web Interface
 
 When enabled (default), access the web dashboard at `http://localhost:8080` to view:
 
 - All discovered APs
-- Capture status (Discovered, Scanning, Captured, Failed)
+- Capture status (Discovered, Scanning, Captured, Failed, Cracked, Failed to crack)
 - Signal strength
-- Handshake file paths
+- Cracked passwords with copy-to-clipboard functionality
+- Handshake file paths with copy-to-clipboard functionality
 
 ### Runtime Files
 
@@ -137,8 +189,9 @@ All runtime files are created in the directory where `wifi-pwner` is executed:
 ```
 ./dist/
 ├── wifi-pwner              # Compiled binary
-├── scanned.db              # SQLite database
+├── scanned.db              # SQLite database (includes cracked passwords)
 ├── whitelist.txt           # Optional BSSID whitelist
+├── rockyou.txt             # Downloaded wordlist (optional)
 └── scanned/                # Captured handshakes
     ├── AABBCCDDEEFF/       # BSSID
     │   └── handshake.pcap

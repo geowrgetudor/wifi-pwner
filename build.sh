@@ -20,6 +20,28 @@ fi
 
 echo "Build completed successfully!"
 
+# Ask about wordlist download
+read -p "Do you want to download the default wordlist (rockyou.txt)? (Y/N) [Y]: " wordlist_response
+case $wordlist_response in
+    [Nn])
+        echo "Skipping wordlist download."
+        ;;
+    *)
+        if [ ! -f "dist/rockyou.txt" ]; then
+            echo "Downloading rockyou.txt wordlist..."
+            curl -L "https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt" -o dist/rockyou.txt
+            if [ $? -eq 0 ]; then
+                echo "Wordlist downloaded successfully!"
+            else
+                echo "Failed to download wordlist. You can download it manually from:"
+                echo "https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt"
+            fi
+        else
+            echo "Wordlist already exists, skipping download."
+        fi
+        ;;
+esac
+
 # Ask user about systemd service setup
 read -p "Do you want wifi-pwner to run on system boot? (Y/N) [N]: " response
 case $response in
@@ -62,8 +84,22 @@ case $response in
             *) webui_flag="" ;;
         esac
         
+        read -p "Enable automatic cracking? (Y/N) [N]: " autocrack_response
+        case $autocrack_response in
+            [Yy]) 
+                autocrack_flag="--autocrack"
+                read -p "Path to wordlist [./dist/rockyou.txt]: " wordlist_path
+                wordlist_path=${wordlist_path:-"./dist/rockyou.txt"}
+                wordlist_flag="--wordlist $wordlist_path"
+                ;;
+            *) 
+                autocrack_flag=""
+                wordlist_flag=""
+                ;;
+        esac
+        
         # Build command line arguments
-        CMD_ARGS="--interface $interface --mode $mode --b-api-port $api_port $clean_flag $expose_flag $webui_flag"
+        CMD_ARGS="--interface $interface --mode $mode --b-api-port $api_port $clean_flag $expose_flag $webui_flag $autocrack_flag $wordlist_flag"
         
         # Get the current directory
         CURRENT_DIR=$(pwd)
@@ -86,6 +122,7 @@ case $response in
         [ -n "$clean_flag" ] && echo "Clean on startup: Yes"
         [ -n "$expose_flag" ] && echo "Expose API: Yes"
         [ "$webui_flag" = "--webui=false" ] && echo "Web UI: Disabled" || echo "Web UI: Enabled"
+        [ -n "$autocrack_flag" ] && echo "Auto-cracking: Enabled with wordlist: $wordlist_path"
         echo ""
         echo "You can start it with: sudo systemctl start wifi-pwner.service"
         echo "Check status with: sudo systemctl status wifi-pwner.service"

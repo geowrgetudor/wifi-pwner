@@ -2,6 +2,7 @@ package src
 
 import (
 	"database/sql"
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -19,6 +20,7 @@ func NewDatabase(workingDir string) (*Database, error) {
 		return nil, err
 	}
 
+	// Create the main table with all columns in their final form
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS scanned (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,7 +31,7 @@ func NewDatabase(workingDir string) (*Database, error) {
 			encryption TEXT,
 			handshake_path TEXT,
 			status TEXT,
-			last_scan DATETIME
+			last_scan DATETIME,
 		)
 	`)
 	if err != nil {
@@ -37,7 +39,15 @@ func NewDatabase(workingDir string) (*Database, error) {
 		return nil, err
 	}
 
-	return &Database{db: db}, nil
+	database := &Database{db: db}
+
+	// Run migrations for existing databases
+	if err := database.RunMigrations(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to run migrations: %v", err)
+	}
+
+	return database, nil
 }
 
 func (d *Database) Close() error {
@@ -61,6 +71,50 @@ func (d *Database) SaveTarget(target *Target, handshakePath string, status Statu
 	return err
 }
 
+func (d *Database) UpdateTargetPassword(bssid string, password string, status Status) error {
+	_, err := d.db.Exec(`
+		UPDATE scanned 
+		SET cracked_password = ?, status = ?, crack_attempted = 1
+		WHERE bssid = ?`,
+		password,
+		string(status),
+		bssid,
+	)
+	return err
+}
+
+func (d *Database) GetTargetsForCracking() ([]map[string]interface{}, error) {
+	query := `
+		SELECT bssid, essid, handshake_path 
+		FROM scanned 
+		WHERE status = ? AND handshake_path != '' AND crack_attempted = 0
+	`
+
+	rows, err := d.db.Query(query, string(StatusHandshakeCaptured))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var targets []map[string]interface{}
+	for rows.Next() {
+		var bssid, essid, handshakePath string
+		err := rows.Scan(&bssid, &essid, &handshakePath)
+		if err != nil {
+			continue
+		}
+
+		target := map[string]interface{}{
+			"bssid":         bssid,
+			"essid":         essid,
+			"handshakePath": handshakePath,
+		}
+		targets = append(targets, target)
+	}
+
+	return targets, nil
+}
+
 func (d *Database) ShouldSkipTarget(bssid string) (bool, error) {
 	var status sql.NullString
 	var lastScan sql.NullTime
@@ -81,7 +135,7 @@ func (d *Database) ShouldSkipTarget(bssid string) (bool, error) {
 		return false, nil
 	}
 
-	if status.String == string(StatusHandshakeCaptured) {
+	if status.String == string(StatusHandshakeCaptured) || status.String == string(StatusCracked) || status.String == string(StatusFailedToCrack) {
 		return true, nil
 	}
 
@@ -173,7 +227,7 @@ func (d *Database) GetPaginatedTargets(params FilterParams) (*PaginatedResult, e
 
 	offset := (params.Page - 1) * params.PerPage
 	query := `
-		SELECT bssid, essid, signal, channel, encryption, handshake_path, status, last_scan 
+		SELECT bssid, essid, signal, channel, encryption, handshake_path, status, last_scan, cracked_password 
 		FROM scanned 
 		WHERE ` + whereClause + `
 		ORDER BY last_scan DESC
@@ -192,8 +246,9 @@ func (d *Database) GetPaginatedTargets(params FilterParams) (*PaginatedResult, e
 		var bssid, essid, channel, encryption, handshakePath, status string
 		var signal int
 		var lastScan sql.NullTime
+		var crackedPassword sql.NullString
 
-		err := rows.Scan(&bssid, &essid, &signal, &channel, &encryption, &handshakePath, &status, &lastScan)
+		err := rows.Scan(&bssid, &essid, &signal, &channel, &encryption, &handshakePath, &status, &lastScan, &crackedPassword)
 		if err != nil {
 			continue
 		}
@@ -212,6 +267,12 @@ func (d *Database) GetPaginatedTargets(params FilterParams) (*PaginatedResult, e
 			target["lastScan"] = lastScan.Time.Format("2006-01-02 15:04:05")
 		} else {
 			target["lastScan"] = ""
+		}
+
+		if crackedPassword.Valid {
+			target["crackedPassword"] = crackedPassword.String
+		} else {
+			target["crackedPassword"] = ""
 		}
 
 		targets = append(targets, target)

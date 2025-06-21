@@ -92,10 +92,29 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
                         'status-captured': '#10b981',
                         'status-failed': '#ef4444',
                         'status-scanning': '#f59e0b',
-                        'status-discovered': '#3b82f6'
+                        'status-discovered': '#3b82f6',
+                        'status-cracked': '#059669',
+                        'status-crack-failed': '#dc2626'
                     }
                 }
             }
+        }
+    </script>
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show a temporary success message
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '✓ Copied!';
+                button.classList.add('bg-green-500');
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('bg-green-500');
+                }, 2000);
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+            });
         }
     </script>
 </head>
@@ -176,7 +195,7 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Channel</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Encryption</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Handshake Path</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Scan</th>
                         </tr>
                     </thead>
@@ -189,16 +208,40 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{.channel}}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{.encryption}}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
-                                    {{if eq .status "Handshake Captured"}}bg-green-100 text-green-800
-                                    {{else if eq .status "Failed to Scan"}}bg-red-100 text-red-800
-                                    {{else if eq .status "Failed to Cap Handshake"}}bg-red-100 text-red-800
-                                    {{else if eq .status "Scanning"}}bg-yellow-100 text-yellow-800
-                                    {{else}}bg-blue-100 text-blue-800{{end}}">
-                                    {{.status}}
-                                </span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                        {{if eq .status "Handshake Captured"}}bg-green-100 text-green-800
+                                        {{else if eq .status "Cracked"}}bg-emerald-100 text-emerald-800
+                                        {{else if eq .status "Failed to crack"}}bg-orange-100 text-orange-800
+                                        {{else if eq .status "Failed to Scan"}}bg-red-100 text-red-800
+                                        {{else if eq .status "Failed to Cap Handshake"}}bg-red-100 text-red-800
+                                        {{else if eq .status "Scanning"}}bg-yellow-100 text-yellow-800
+                                        {{else}}bg-blue-100 text-blue-800{{end}}">
+                                        {{.status}}
+                                    </span>
+                                    {{if and .handshakePath (ne .handshakePath "") (or (eq .status "Handshake Captured") (eq .status "Cracked") (eq .status "Failed to crack"))}}
+                                    <button onclick="copyToClipboard('{{.handshakePath}}')" 
+                                            class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-150"
+                                            title="Copy handshake path">
+                                        📋
+                                    </button>
+                                    {{end}}
+                                </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{.handshakePath}}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {{if .crackedPassword}}
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-mono text-green-600">{{.crackedPassword}}</span>
+                                        <button onclick="copyToClipboard('{{.crackedPassword}}')" 
+                                                class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-150"
+                                                title="Copy password">
+                                            📋
+                                        </button>
+                                    </div>
+                                {{else}}
+                                    <span class="text-gray-400">-</span>
+                                {{end}}
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{.lastScan}}</td>
                         </tr>
                         {{end}}

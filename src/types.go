@@ -19,6 +19,8 @@ const (
 	StatusFailedToScan      Status = "Failed to Scan"
 	StatusFailedToCap       Status = "Failed to Cap Handshake"
 	StatusHandshakeCaptured Status = "Handshake Captured"
+	StatusCracked           Status = "Cracked"
+	StatusFailedToCrack     Status = "Failed to crack"
 )
 
 type Config struct {
@@ -30,6 +32,8 @@ type Config struct {
 	BettercapApiExpose bool
 	WebUI              bool
 	WorkingDir         string
+	AutoCrack          bool
+	WordlistPath       string
 }
 
 type BettercapCommand struct {

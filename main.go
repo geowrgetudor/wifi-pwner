@@ -24,18 +24,25 @@ func main() {
 
 	// Parse command line flags
 	var (
-		iface    = flag.String("interface", "", "WiFi interface to use (required)")
-		mode     = flag.String("mode", "2.4", "WiFi mode: 2.4 or 5 (default: 2.4)")
-		clean    = flag.Bool("clean", false, "Clean scanned directory and database")
-		bApiPort = flag.String("b-api-port", "8081", "Bettercap API port (default: 8081)")
-		bExpose  = flag.Bool("b-expose", false, "Expose Bettercap API on 0.0.0.0 instead of 127.0.0.1 (default: false)")
-		webui    = flag.Bool("webui", true, "Enable web UI on port 8080 (default: true)")
+		iface     = flag.String("interface", "", "WiFi interface to use (required)")
+		mode      = flag.String("mode", "2.4", "WiFi mode: 2.4 or 5 (default: 2.4)")
+		clean     = flag.Bool("clean", false, "Clean scanned directory and database")
+		bApiPort  = flag.String("b-api-port", "8081", "Bettercap API port (default: 8081)")
+		bExpose   = flag.Bool("b-expose", false, "Expose Bettercap API on 0.0.0.0 instead of 127.0.0.1 (default: false)")
+		webui     = flag.Bool("webui", true, "Enable web UI on port 8080 (default: true)")
+		autocrack = flag.Bool("autocrack", false, "Enable automatic WPA2 handshake cracking")
+		wordlist  = flag.String("wordlist", "", "Path to wordlist file for cracking (required if --autocrack is used)")
 	)
 	flag.Parse()
 
 	if *iface == "" {
 		flag.Usage()
 		log.Fatal("Error: --interface flag is required")
+	}
+
+	if *autocrack && *wordlist == "" {
+		flag.Usage()
+		log.Fatal("Error: --wordlist flag is required when --autocrack is enabled")
 	}
 
 	config := &src.Config{
@@ -47,6 +54,8 @@ func main() {
 		BettercapApiExpose: *bExpose,
 		WebUI:              *webui,
 		WorkingDir:         workingDir,
+		AutoCrack:          *autocrack,
+		WordlistPath:       *wordlist,
 	}
 
 	// Clean if requested
@@ -83,6 +92,17 @@ func main() {
 
 	// Initialize handshake capture
 	handshake := src.NewHandshakeCapture(bettercap, db, workingDir)
+
+	// Initialize cracker if enabled
+	var cracker *src.Cracker
+	if config.AutoCrack {
+		cracker = src.NewCracker(db, config.WordlistPath)
+		if err := cracker.LoadInitialTargets(); err != nil {
+			log.Printf("Warning: Failed to load initial crack targets: %v", err)
+		}
+		cracker.Start()
+		defer cracker.Stop()
+	}
 
 	// Start web server if enabled
 	if config.WebUI {
@@ -135,6 +155,11 @@ func main() {
 		if capFile != "" {
 			log.Printf("[CAPTURED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
 			db.SaveTarget(bestTarget, capFile, src.StatusHandshakeCaptured)
+			
+			// Add to crack queue if autocrack is enabled
+			if config.AutoCrack {
+				src.AddToCrackQueue(bestTarget.BSSID, bestTarget.ESSID, capFile)
+			}
 		} else {
 			log.Printf("[FAILED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
 			db.SaveTarget(bestTarget, "", src.StatusFailedToCap)
