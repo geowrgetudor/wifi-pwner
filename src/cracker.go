@@ -193,5 +193,8 @@ func (c *Cracker) crackTarget(target CrackTarget) {
 	if cracked && password != "" {
 		log.Printf("[CRACKER] SUCCESS! Cracked %s (%s): %s", target.ESSID, target.BSSID, password)
 		c.db.UpdateTargetPassword(target.BSSID, password, StatusCracked)
+	} else {
+		log.Printf("[CRACKER] FAILED to crack %s (%s)", target.ESSID, target.BSSID)
+		c.db.UpdateTargetPassword(target.BSSID, "", StatusFailedToCrack)
 	}
 }
