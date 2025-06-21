@@ -76,7 +76,6 @@ func (s *Scanner) StartContinuousScanning() error {
 
 	// Set up bettercap for scanning
 	s.bettercap.RunCommand(fmt.Sprintf("set wifi.interface %s", s.config.Interface))
-	s.bettercap.RunCommand("set wifi.rssi.min -70")
 	s.bettercap.RunCommand("set wifi.deauth.open false")
 
 	channels := s.getChannelsForMode()
@@ -97,23 +96,23 @@ func (s *Scanner) continuousScanning() {
 		}
 
 		targets := s.parseTargets(sessionData)
-		
+
 		// Refresh global targets with current session data
 		s.targetsMutex.Lock()
 		// Clear existing targets and replace with fresh data
 		s.globalTargets = make(map[string]*Target)
-		
+
 		for _, target := range targets {
 			targetCopy := target
 			s.globalTargets[target.BSSID] = &targetCopy
-			
+
 			// Check if this target exists in the database
 			exists, err := s.db.TargetExists(target.BSSID)
 			if err != nil {
 				log.Printf("[ERROR] Failed to check target existence: %v", err)
 				continue
 			}
-			
+
 			// Save new targets to database
 			if !exists {
 				log.Printf("[NEW] Discovered %s (%s) %ddBm", target.ESSID, target.BSSID, target.Signal)
@@ -222,6 +221,13 @@ func (s *Scanner) FindBestAvailableTarget(targets []Target) *Target {
 
 	// Find the first target that shouldn't be skipped
 	for _, st := range scoredTargets {
+		// Skip open networks
+		if strings.EqualFold(st.target.Encryption, "Open") ||
+			strings.EqualFold(st.target.Encryption, "None") ||
+			st.target.Encryption == "" {
+			continue
+		}
+
 		skip, err := s.db.ShouldSkipTarget(st.target.BSSID)
 		if err != nil {
 			continue

@@ -100,6 +100,55 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
             }
         }
     </script>
+    <style>
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1f2937 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .info-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-left: 4px;
+            color: #f59e0b;
+            cursor: help;
+        }
+    </style>
     <script>
         function copyToClipboard(text) {
             const button = event.target;
@@ -257,7 +306,19 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{{.bssid}}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{.essid}}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{.signal}} dBm</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div class="flex items-center">
+                                    <span>{{.signal}} dBm</span>
+                                    {{if and (eq .status "Discovered") (lt .signal -70)}}
+                                    <div class="tooltip">
+                                        <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="tooltiptext">Signal too weak! Move closer to the target. Min signal required is -70.</span>
+                                    </div>
+                                    {{end}}
+                                </div>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{.channel}}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{.encryption}}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -273,11 +334,13 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
                                         {{.status}}
                                     </span>
                                     {{if and .handshakePath (ne .handshakePath "") (or (eq .status "Handshake Captured") (eq .status "Cracked") (eq .status "Failed to crack"))}}
-                                    <button onclick="copyToClipboard('{{.handshakePath}}')" 
-                                            class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-150"
-                                            title="Copy handshake path">
-                                        📋
-                                    </button>
+                                    <div class="tooltip">
+                                        <button onclick="copyToClipboard('{{.handshakePath}}')" 
+                                                class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-150">
+                                            📋
+                                        </button>
+                                        <span class="tooltiptext">Copy handshake path</span>
+                                    </div>
                                     {{end}}
                                 </div>
                             </td>
@@ -285,11 +348,13 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
                                 {{if .crackedPassword}}
                                     <div class="flex items-center space-x-2">
                                         <span class="font-mono text-green-600">{{.crackedPassword}}</span>
-                                        <button onclick="copyToClipboard('{{.crackedPassword}}')" 
-                                                class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-150"
-                                                title="Copy password">
-                                            📋
-                                        </button>
+                                        <div class="tooltip">
+                                            <button onclick="copyToClipboard('{{.crackedPassword}}')" 
+                                                    class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-150">
+                                                📋
+                                            </button>
+                                            <span class="tooltiptext">Copy password</span>
+                                        </div>
                                     </div>
                                 {{else}}
                                     <span class="text-gray-400">-</span>

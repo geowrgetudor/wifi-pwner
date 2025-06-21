@@ -47,6 +47,12 @@ func NewDatabase(workingDir string) (*Database, error) {
 		return nil, fmt.Errorf("failed to run migrations: %v", err)
 	}
 
+	// Reset any targets that were left in "Scanning" status
+	if err := database.ResetScanningStatus(); err != nil {
+		// Log error but don't fail - this is not critical
+		fmt.Printf("Warning: Failed to reset scanning status: %v\n", err)
+	}
+
 	return database, nil
 }
 
@@ -336,4 +342,15 @@ func (d *Database) GetUniqueStatuses() ([]string, error) {
 		}
 	}
 	return statuses, nil
+}
+
+func (d *Database) ResetScanningStatus() error {
+	_, err := d.db.Exec(`
+		UPDATE scanned 
+		SET status = ? 
+		WHERE status = ?`,
+		string(StatusDiscovered),
+		string(StatusScanning),
+	)
+	return err
 }
