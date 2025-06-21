@@ -157,12 +157,6 @@ func (c *Cracker) crackTarget(target CrackTarget) {
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		// Debug log to see all output
-		if line != "" && !strings.Contains(line, "Reading packets") {
-			log.Printf("[CRACKER DEBUG] Output: %s", line)
-		}
-
-		// Only log important lines, not the progress output
 		if strings.Contains(line, "KEY FOUND!") {
 			log.Printf("[CRACKER] Found key line: %s", line)
 			parts := strings.Split(line, "[")
@@ -179,7 +173,6 @@ func (c *Cracker) crackTarget(target CrackTarget) {
 			strings.Contains(line, "potential targets") ||
 			strings.Contains(line, "handshake") ||
 			strings.Contains(line, "WPA") {
-			// Log these informational lines but suppress progress
 			continue
 		}
 	}

@@ -87,10 +87,10 @@ func (d *Database) GetTargetsForCracking() ([]map[string]interface{}, error) {
 	query := `
 		SELECT bssid, essid, handshake_path 
 		FROM scanned 
-		WHERE status = ? AND handshake_path != ''
+		WHERE (status = ? OR status = ?) AND handshake_path != ''
 	`
 
-	rows, err := d.db.Query(query, string(StatusHandshakeCaptured))
+	rows, err := d.db.Query(query, string(StatusHandshakeCaptured), string(StatusFailedToCrack))
 	if err != nil {
 		return nil, err
 	}

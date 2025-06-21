@@ -40,7 +40,7 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
 	if page < 1 {
 		page = 1
 	}
-	
+
 	search := strings.TrimSpace(req.URL.Query().Get("search"))
 	encryption := req.URL.Query().Get("encryption")
 	channel := req.URL.Query().Get("channel")
@@ -155,11 +155,9 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
         }
         
         function showCopySuccess(button, originalText) {
-            button.innerHTML = '✓ Copied!';
-            button.classList.add('bg-green-500');
+            button.innerHTML = '✓';
             setTimeout(() => {
                 button.innerHTML = originalText;
-                button.classList.remove('bg-green-500');
             }, 2000);
         }
         
@@ -350,16 +348,22 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
 		"add": func(a, b int) int { return a + b },
 		"sub": func(a, b int) int { return a - b },
 		"mul": func(a, b int) int { return a * b },
-		"min": func(a, b int) int { 
-			if a < b { return a }
-			return b 
+		"min": func(a, b int) int {
+			if a < b {
+				return a
+			}
+			return b
 		},
 		"pageRange": func(totalPages, currentPage int) []int {
 			start := currentPage - 2
-			if start < 1 { start = 1 }
+			if start < 1 {
+				start = 1
+			}
 			end := currentPage + 2
-			if end > totalPages { end = totalPages }
-			
+			if end > totalPages {
+				end = totalPages
+			}
+
 			var pages []int
 			for i := start; i <= end; i++ {
 				pages = append(pages, i)
