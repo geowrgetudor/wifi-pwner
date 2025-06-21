@@ -31,7 +31,7 @@ func NewDatabase(workingDir string) (*Database, error) {
 			encryption TEXT,
 			handshake_path TEXT,
 			status TEXT,
-			last_scan DATETIME,
+			last_scan DATETIME
 		)
 	`)
 	if err != nil {
