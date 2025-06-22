@@ -26,6 +26,31 @@ A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capt
 
 <br />
 
+## Table of Contents
+
+- [Features](#features)
+- [Hardware Requirements](#hardware-requirements)
+- [Software Requirements](#software-requirements)
+- [Installation](#installation)
+  - [Option 1: Download Pre-built Binary (Recommended)](#option-1-download-pre-built-binary-recommended)
+  - [Option 2: Build from Source](#option-2-build-from-source)
+- [Usage](#usage)
+  - [Basic Usage](#basic-usage)
+  - [Command Line Options](#command-line-options)
+  - [Examples](#examples)
+- [Automatic Password Cracking](#automatic-password-cracking)
+  - [Features](#features-1)
+  - [Usage](#usage-1)
+  - [Status Meanings](#status-meanings)
+  - [Wordlist Management](#wordlist-management)
+- [Web Interface](#web-interface)
+  - [Runtime Files](#runtime-files)
+- [Whitelist Format](#whitelist-format)
+- [Systemd Service](#systemd-service)
+- [Troubleshooting](#troubleshooting)
+- [Security Notice](#security-notice)
+- [License](#license)
+
 ## Features
 
 - **Mobile-First Design**: Optimized for Raspberry Pi on the move, but works on any Linux distro
