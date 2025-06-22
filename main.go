@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"wifi-pwner/src"
 )
@@ -89,6 +90,7 @@ func main() {
 	if err := scanner.LoadWhitelist(); err != nil {
 		log.Printf("Warning: Failed to load whitelist: %v", err)
 	}
+	src.GlobalScanner = scanner
 
 	// Initialize handshake capture
 	handshake := src.NewHandshakeCapture(bettercap, db, workingDir)
@@ -102,6 +104,8 @@ func main() {
 		}
 		cracker.Start()
 		defer cracker.Stop()
+		src.GlobalCracker = cracker
+		src.SetCrackingEnabled(true)
 	}
 
 	// Start web server if enabled
@@ -131,6 +135,12 @@ func main() {
 	// Main processing loop
 	log.Printf("[READY] Scanner started on %s", config.Interface)
 	for {
+		// Check if scanning is enabled
+		if !src.GetScanningEnabled() {
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
 		targets, err := scanner.ScanForTargets()
 		if err != nil {
 			log.Printf("[ERROR] Scan failed: %v", err)
@@ -156,8 +166,8 @@ func main() {
 			log.Printf("[CAPTURED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
 			db.SaveTarget(bestTarget, capFile, src.StatusHandshakeCaptured)
 			
-			// Add to crack queue if autocrack is enabled
-			if config.AutoCrack {
+			// Add to crack queue if autocrack is enabled and cracking is enabled
+			if config.AutoCrack && src.GetCrackingEnabled() {
 				src.AddToCrackQueue(bestTarget.BSSID, bestTarget.ESSID, capFile)
 			}
 		} else {

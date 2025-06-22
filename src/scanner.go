@@ -88,6 +88,12 @@ func (s *Scanner) StartContinuousScanning() error {
 
 func (s *Scanner) continuousScanning() {
 	for s.scanning {
+		// Check if scanning is globally enabled
+		if !GetScanningEnabled() {
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
 		sessionData, err := s.bettercap.GetSessionData()
 		if err != nil {
 			log.Printf("[ERROR] Failed to get session data: %v", err)

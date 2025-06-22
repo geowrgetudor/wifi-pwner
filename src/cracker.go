@@ -106,6 +106,11 @@ func (c *Cracker) crackingWorker() {
 }
 
 func (c *Cracker) processQueue() {
+	// Check if cracking is enabled
+	if !GetCrackingEnabled() {
+		return
+	}
+
 	processingLock.Lock()
 	if isProcessing {
 		processingLock.Unlock()
