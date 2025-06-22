@@ -2,6 +2,16 @@
   <img src="https://raw.githubusercontent.com/geowrgetudor/wifi-pwner/refs/heads/main/cover.png" alt="WiFi Pwner Logo" />
 </div>
 
+<div align=center>
+    <img alt="Platform" src="https://img.shields.io/badge/platform-Linux-blue.svg">
+    <img alt="GitHub go.mod Go version" src="https://img.shields.io/github/go-mod/go-version/geowrgetudor/wifi-pwner">
+    <img alt="GitHub License" src="https://img.shields.io/github/license/geowrgetudor/wifi-pwner">
+    <img alt="GitHub Release" src="https://img.shields.io/github/v/release/geowrgetudor/wifi-pwner">
+    <img alt="GitHub branch check runs" src="https://img.shields.io/github/check-runs/geowrgetudor/wifi-pwner/main">
+    <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/geowrgetudor/wifi-pwner/.github%2Fworkflows%2Fci.yml?branch=main">
+    <img alt="GitHub Last Commit (main)" src="https://img.shields.io/github/last-commit/geowrgetudor/wifi-pwner/main">
+</div>
+
 # WiFi Pwner
 
 A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capture & cracking tool built on top of Bettercap & Aircrack-ng. Run WiFi Pwner on your Pi (as service) and start pwning without breaking a sweat.
