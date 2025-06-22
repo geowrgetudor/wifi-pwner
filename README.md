@@ -2,14 +2,16 @@
   <img src="https://raw.githubusercontent.com/geowrgetudor/wifi-pwner/refs/heads/main/cover.png" alt="WiFi Pwner Logo" />
 </div>
 
+<br />
+
 <div align=center>
-    <img alt="Platform" src="https://img.shields.io/badge/platform-Linux-blue.svg">
-    <img alt="GitHub go.mod Go version" src="https://img.shields.io/github/go-mod/go-version/geowrgetudor/wifi-pwner">
-    <img alt="GitHub License" src="https://img.shields.io/github/license/geowrgetudor/wifi-pwner">
-    <img alt="GitHub Release" src="https://img.shields.io/github/v/release/geowrgetudor/wifi-pwner">
-    <img alt="GitHub branch check runs" src="https://img.shields.io/github/check-runs/geowrgetudor/wifi-pwner/main">
-    <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/geowrgetudor/wifi-pwner/.github%2Fworkflows%2Fci.yml?branch=main">
-    <img alt="GitHub Last Commit (main)" src="https://img.shields.io/github/last-commit/geowrgetudor/wifi-pwner/main">
+    <img alt="Platform" src="https://img.shields.io/badge/platform-Linux-blue.svg" />
+    <img alt="Go version" src="https://img.shields.io/github/go-mod/go-version/geowrgetudor/wifi-pwner" />
+    <img alt="License" src="https://img.shields.io/github/license/geowrgetudor/wifi-pwner" />
+    <img alt="Release" src="https://img.shields.io/github/v/release/geowrgetudor/wifi-pwner">
+    <img alt="Checks run" src="https://img.shields.io/github/check-runs/geowrgetudor/wifi-pwner/main" />
+    <img alt="Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/geowrgetudor/wifi-pwner/.github%2Fworkflows%2Fci.yml?branch=main" />
+    <img alt="Last commit" src="https://img.shields.io/github/last-commit/geowrgetudor/wifi-pwner/main" />
 </div>
 
 # WiFi Pwner
