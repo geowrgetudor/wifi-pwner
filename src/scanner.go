@@ -88,7 +88,6 @@ func (s *Scanner) StartContinuousScanning() error {
 
 func (s *Scanner) continuousScanning() {
 	for s.scanning {
-		// Check if scanning is globally enabled
 		if !GetScanningEnabled() {
 			time.Sleep(5 * time.Second)
 			continue
@@ -103,31 +102,26 @@ func (s *Scanner) continuousScanning() {
 
 		targets := s.parseTargets(sessionData)
 
-		// Refresh global targets with current session data
 		s.targetsMutex.Lock()
-		// Clear existing targets and replace with fresh data
+
 		s.globalTargets = make(map[string]*Target)
 
 		for _, target := range targets {
 			targetCopy := target
 			s.globalTargets[target.BSSID] = &targetCopy
 
-			// Check if this target exists in the database
 			exists, err := s.db.TargetExists(target.BSSID)
 			if err != nil {
 				log.Printf("[ERROR] Failed to check target existence: %v", err)
 				continue
 			}
 
-			// Save new targets to database
 			if !exists {
 				log.Printf("[NEW] Discovered %s (%s) %ddBm", target.ESSID, target.BSSID, target.Signal)
 				s.db.SaveTarget(&target, "", StatusDiscovered)
 			}
 		}
 		s.targetsMutex.Unlock()
-
-		time.Sleep(10 * time.Second) // Refresh every 10 seconds
 	}
 }
 
@@ -138,7 +132,6 @@ func (s *Scanner) StopContinuousScanning() {
 }
 
 func (s *Scanner) ScanForTargets() ([]Target, error) {
-	// This method now returns targets from the global variable
 	s.targetsMutex.RLock()
 	defer s.targetsMutex.RUnlock()
 
@@ -199,6 +192,12 @@ func (s *Scanner) parseTargets(sessionData *SessionData) []Target {
 	}
 
 	return targets
+}
+
+func (s *Scanner) ClearGlobalTargets() {
+	s.targetsMutex.Lock()
+	defer s.targetsMutex.Unlock()
+	s.globalTargets = make(map[string]*Target)
 }
 
 func (s *Scanner) FindBestAvailableTarget(targets []Target) *Target {

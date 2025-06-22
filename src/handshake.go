@@ -43,6 +43,10 @@ func (h *HandshakeCapture) CaptureHandshake(target *Target, channels string) (st
 
 	h.bettercap.RunCommand(fmt.Sprintf("wifi.recon.channel %s", channels))
 
+	if GlobalScanner != nil {
+		GlobalScanner.ClearGlobalTargets()
+	}
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
