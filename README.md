@@ -64,6 +64,11 @@ A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capt
 - **Automatic Password Cracking**: Built-in WPA2 handshake cracking using aircrack-ng
 - **Wordlist Support**: Download and use popular wordlists like rockyou.txt
 
+Upcoming:
+
+- GPS support
+- Interactive map
+
 ## Hardware Requirements
 
 - Raspberry Pi (3 / 4 / 400 / 5) or any Laptop/PC with a Linux distro
