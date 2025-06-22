@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://raw.githubusercontent.com/geowrgetudor/wifi-pwner/refs/heads/main/cover.png" alt="WiFi Pwner Logo" />
+</div>
+
 # WiFi Pwner
 
 A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capture & cracking tool built on top of Bettercap & Aircrack-ng. Run WiFi Pwner on your Pi (as service) and start pwning without breaking a sweat.
