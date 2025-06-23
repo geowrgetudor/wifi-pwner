@@ -354,3 +354,37 @@ func (d *Database) ResetScanningStatus() error {
 	)
 	return err
 }
+
+func (d *Database) GetTarget(bssid string) map[string]interface{} {
+	var (
+		b, essid, channel, encryption, status, handshakePath, lastScan, crackedPassword string
+		signal int
+	)
+	
+	err := d.db.QueryRow(`
+		SELECT bssid, essid, channel, signal, encryption, status, handshake_path, lastScan, cracked_password
+		FROM scanned
+		WHERE bssid = ?
+	`, bssid).Scan(&b, &essid, &channel, &signal, &encryption, &status, &handshakePath, &lastScan, &crackedPassword)
+	
+	if err != nil {
+		return nil
+	}
+	
+	return map[string]interface{}{
+		"bssid":           b,
+		"essid":           essid,
+		"channel":         channel,
+		"signal":          signal,
+		"encryption":      encryption,
+		"status":          status,
+		"handshake_path":  handshakePath,
+		"lastScan":        lastScan,
+		"cracked_password": crackedPassword,
+	}
+}
+
+func (d *Database) DeleteTarget(bssid string) error {
+	_, err := d.db.Exec("DELETE FROM scanned WHERE bssid = ?", bssid)
+	return err
+}

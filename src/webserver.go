@@ -1,9 +1,12 @@
 package src
 
 import (
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -22,6 +25,8 @@ func (w *WebServer) Start() {
 	mux.HandleFunc("/api/toggle-scanning", w.handleToggleScanning)
 	mux.HandleFunc("/api/toggle-cracking", w.handleToggleCracking)
 	mux.HandleFunc("/api/status", w.handleStatus)
+	mux.HandleFunc("/api/download-handshake", w.handleDownloadHandshake)
+	mux.HandleFunc("/api/delete-target", w.handleDeleteTarget)
 
 	log.Printf("[INIT] Web UI: http://localhost:%s", DefaultWebPort)
 	go http.ListenAndServe(":"+DefaultWebPort, mux)
@@ -227,6 +232,34 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
             document.getElementById('searchForm').submit();
         }
 
+        function downloadHandshake(bssid) {
+            window.location.href = '/api/download-handshake?bssid=' + encodeURIComponent(bssid);
+        }
+
+        function deleteTarget(bssid) {
+            if (confirm('Are you sure you want to delete this target? This will permanently remove the target from the database and delete any associated handshake file.')) {
+                fetch('/api/delete-target', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ bssid: bssid })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Failed to delete target');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to delete target');
+                });
+            }
+        }
+
         let scanningEnabled = true;
         let crackingEnabled = false;
         let crackerAvailable = false;
@@ -396,6 +429,7 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Password</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Scan</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -458,6 +492,22 @@ func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request)
                                 {{end}}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{.lastScan}}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="flex space-x-2">
+                                    {{if or (eq .status "Handshake captured") (eq .status "Cracked") (eq .status "Failed to crack")}}
+                                    <button onclick="downloadHandshake('{{.bssid}}')" class="text-blue-600 hover:text-blue-900" title="Download handshake PCAP file">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                                        </svg>
+                                    </button>
+                                    {{end}}
+                                    <button onclick="deleteTarget('{{.bssid}}')" class="text-red-600 hover:text-red-900" title="Delete target from database and remove handshake file">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                         {{end}}
                     </tbody>
@@ -612,4 +662,87 @@ func (w *WebServer) handleStatus(resp http.ResponseWriter, req *http.Request) {
 	resp.Write([]byte(`{"scanning": ` + strconv.FormatBool(GetScanningEnabled()) +
 		`, "cracking": ` + strconv.FormatBool(GetCrackingEnabled()) +
 		`, "crackerAvailable": ` + strconv.FormatBool(GlobalCracker != nil) + `}`))
+}
+
+func (w *WebServer) handleDownloadHandshake(resp http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		http.Error(resp, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	bssid := req.URL.Query().Get("bssid")
+	if bssid == "" {
+		http.Error(resp, "BSSID parameter required", http.StatusBadRequest)
+		return
+	}
+
+	target := w.db.GetTarget(bssid)
+	if target == nil {
+		http.Error(resp, "Target not found", http.StatusNotFound)
+		return
+	}
+
+	handshakePath, ok := target["handshake_path"].(string)
+	if !ok || handshakePath == "" {
+		http.Error(resp, "No handshake available", http.StatusNotFound)
+		return
+	}
+
+	// Check if file exists
+	if _, err := os.Stat(handshakePath); os.IsNotExist(err) {
+		http.Error(resp, "Handshake file not found", http.StatusNotFound)
+		return
+	}
+
+	// Get filename from path
+	filename := filepath.Base(handshakePath)
+	
+	// Set headers for file download
+	resp.Header().Set("Content-Disposition", "attachment; filename="+filename)
+	resp.Header().Set("Content-Type", "application/vnd.tcpdump.pcap")
+	
+	// Serve the file
+	http.ServeFile(resp, req, handshakePath)
+}
+
+func (w *WebServer) handleDeleteTarget(resp http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		http.Error(resp, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var data struct {
+		BSSID string `json:"bssid"`
+	}
+
+	if err := json.NewDecoder(req.Body).Decode(&data); err != nil {
+		http.Error(resp, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if data.BSSID == "" {
+		http.Error(resp, "BSSID parameter required", http.StatusBadRequest)
+		return
+	}
+
+	// Get target to check for handshake file
+	target := w.db.GetTarget(data.BSSID)
+	if target != nil {
+		handshakePath, ok := target["handshake_path"].(string)
+		if ok && handshakePath != "" {
+			// Delete handshake file if it exists
+			if _, err := os.Stat(handshakePath); err == nil {
+				os.Remove(handshakePath)
+			}
+		}
+	}
+
+	// Delete from database
+	if err := w.db.DeleteTarget(data.BSSID); err != nil {
+		http.Error(resp, "Failed to delete target", http.StatusInternalServerError)
+		return
+	}
+
+	resp.Header().Set("Content-Type", "application/json")
+	resp.Write([]byte(`{"success": true}`))
 }
