@@ -31,8 +31,7 @@ func main() {
 		bApiPort  = flag.String("b-api-port", "8081", "Bettercap API port (default: 8081)")
 		bExpose   = flag.Bool("b-expose", false, "Expose Bettercap API on 0.0.0.0 instead of 127.0.0.1 (default: false)")
 		webui     = flag.Bool("webui", true, "Enable web UI on port 8080 (default: true)")
-		autocrack = flag.Bool("autocrack", false, "Enable automatic WPA2 handshake cracking")
-		wordlist  = flag.String("wordlist", "", "Path to wordlist file for cracking (required if --autocrack is used)")
+		autocrack = flag.String("autocrack", "", "Path to wordlist file for automatic WPA2 handshake cracking")
 	)
 	flag.Parse()
 
@@ -41,9 +40,15 @@ func main() {
 		log.Fatal("Error: --interface flag is required")
 	}
 
-	if *autocrack && *wordlist == "" {
-		flag.Usage()
-		log.Fatal("Error: --wordlist flag is required when --autocrack is enabled")
+	if *autocrack != "" {
+		if _, err := os.Stat(*autocrack); os.IsNotExist(err) {
+			flag.Usage()
+			log.Fatalf("Error: wordlist file does not exist: %s", *autocrack)
+		}
+		if filepath.Ext(*autocrack) != ".txt" {
+			flag.Usage()
+			log.Fatalf("Error: wordlist file must be a .txt file: %s", *autocrack)
+		}
 	}
 
 	config := &src.Config{
@@ -55,11 +60,10 @@ func main() {
 		BettercapApiExpose: *bExpose,
 		WebUI:              *webui,
 		WorkingDir:         workingDir,
-		AutoCrack:          *autocrack,
-		WordlistPath:       *wordlist,
+		AutoCrack:          *autocrack != "",
+		WordlistPath:       *autocrack,
 	}
 
-	// Clean if requested
 	if config.Clean {
 		cleaner := src.NewCleaner(workingDir)
 		if err := cleaner.Clean(); err != nil {
@@ -125,29 +129,26 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// Start continuous scanning in background
-	log.Printf("[READY] Starting continuous scanner on %s", config.Interface)
-	if err := scanner.StartContinuousScanning(); err != nil {
-		log.Fatalf("Failed to start continuous scanning: %v", err)
-	}
-	defer scanner.StopContinuousScanning()
-
-	// Main processing loop
 	log.Printf("[READY] Scanner started on %s", config.Interface)
 	for {
-		// Check if scanning is enabled
 		if !src.GetScanningEnabled() {
 			time.Sleep(5 * time.Second)
 			continue
 		}
 
-		targets, err := scanner.ScanForTargets()
-		if err != nil {
-			log.Printf("[ERROR] Scan failed: %v", err)
+		if err := scanner.StartScanning(); err != nil {
+			log.Printf("[ERROR] Failed to start scanning: %v", err)
 			continue
 		}
 
-		// Find the best available target from global targets
+		time.Sleep(10 * time.Second)
+
+		targets, err := scanner.GetTargets()
+		if err != nil {
+			log.Printf("[ERROR] Failed to gather targets: %v", err)
+			continue
+		}
+
 		bestTarget := scanner.FindBestAvailableTarget(targets)
 		if bestTarget == nil {
 			continue
@@ -155,7 +156,7 @@ func main() {
 
 		log.Printf("[TARGET] %s (%s) %ddBm", bestTarget.ESSID, bestTarget.BSSID, bestTarget.Signal)
 
-		capFile, err := handshake.CaptureHandshake(bestTarget, scanner.GetChannels())
+		capFile, err := handshake.CaptureHandshake(bestTarget, scanner.GetChannelsForMode())
 		if err != nil {
 			log.Printf("[ERROR] %s", err)
 			db.SaveTarget(bestTarget, "", src.StatusFailedToCap)
@@ -165,9 +166,8 @@ func main() {
 		if capFile != "" {
 			log.Printf("[CAPTURED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
 			db.SaveTarget(bestTarget, capFile, src.StatusHandshakeCaptured)
-			
-			// Add to crack queue if autocrack is enabled and cracking is enabled
-			if config.AutoCrack && src.GetCrackingEnabled() {
+
+			if src.GetCrackingEnabled() {
 				src.AddToCrackQueue(bestTarget.BSSID, bestTarget.ESSID, capFile)
 			}
 		} else {

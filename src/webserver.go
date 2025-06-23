@@ -629,11 +629,11 @@ func (w *WebServer) handleToggleScanning(resp http.ResponseWriter, req *http.Req
 	SetScanningEnabled(enabled)
 
 	if enabled && GlobalScanner != nil {
-		if err := GlobalScanner.StartContinuousScanning(); err != nil {
-			log.Printf("[ERROR] Failed to start continuous scanning: %v", err)
+		if err := GlobalScanner.StartScanning(); err != nil {
+			log.Printf("[ERROR] Failed to start scanning: %v", err)
 		}
 	} else if !enabled && GlobalScanner != nil {
-		GlobalScanner.StopContinuousScanning()
+		GlobalScanner.StopScanning()
 	}
 
 	resp.Header().Set("Content-Type", "application/json")

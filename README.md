@@ -34,6 +34,7 @@ A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capt
 - [Installation](#installation)
   - [Option 1: Download Pre-built Binary (Recommended)](#option-1-download-pre-built-binary-recommended)
   - [Option 2: Build from Source](#option-2-build-from-source)
+- [Upgrade](#upgrade)
 - [Usage](#usage)
   - [Basic Usage](#basic-usage)
   - [Command Line Options](#command-line-options)
@@ -142,6 +143,27 @@ The build script will:
 - Optionally download the rockyou.txt wordlist for password cracking
 - Optionally set up a systemd service for auto-start
 
+## Upgrade
+
+To upgrade WiFi Pwner to the latest version:
+
+### Option 1: Download Latest Release (Recommended)
+
+1. Download the latest binary from the [releases page](https://github.com/georgegebbett/wifi-pwner/releases)
+2. Replace your existing binary with the new one
+3. Make it executable: `chmod +x wifi-pwner`
+
+### Option 2: Build from Source
+
+1. Pull the latest changes: `git pull origin main`
+2. Rebuild: `./build.sh`
+
+### Important Notes
+
+- **No downgrade option**: There is no automatic way to downgrade to a previous version
+- **Database compatibility**: If you need to downgrade, download/build the older version and use the `--clean` flag to reset the database and captures
+- **Backup recommendation**: Consider backing up your `scanned.db` and `scanned/` directory before upgrading
+
 ## Usage
 
 ### Basic Usage
@@ -158,8 +180,7 @@ sudo ./dist/wifi-pwner --interface wlan0
 - `--b-api-port`: Bettercap API port (default: `8081`)
 - `--b-expose`: Expose Bettercap API on 0.0.0.0 instead of 127.0.0.1
 - `--webui`: Enable custom web UI on port 8080 (default: `true`)
-- `--autocrack`: Enable automatic WPA2 handshake cracking
-- `--wordlist`: Path to wordlist file for cracking (required if --autocrack is used)
+- `--autocrack`: Path to wordlist file for automatic WPA2 handshake cracking
 
 ### Examples
 
@@ -180,10 +201,10 @@ sudo ./dist/wifi-pwner --interface wlan0 --b-expose
 sudo ./dist/wifi-pwner --interface wlan0 --webui=false
 
 # Enable automatic cracking with rockyou.txt wordlist
-sudo ./dist/wifi-pwner --interface wlan0 --autocrack --wordlist ./dist/rockyou.txt
+sudo ./dist/wifi-pwner --interface wlan0 --autocrack ./dist/rockyou.txt
 
 # Enable automatic cracking with custom wordlist
-sudo ./dist/wifi-pwner --interface wlan0 --autocrack --wordlist /path/to/custom/wordlist.txt
+sudo ./dist/wifi-pwner --interface wlan0 --autocrack /path/to/custom/wordlist.txt
 ```
 
 ## Automatic Password Cracking
@@ -203,7 +224,7 @@ WiFi Pwner includes built-in automatic WPA2 handshake cracking functionality usi
 1. **Enable autocrack mode** when starting wifi-pwner:
 
    ```bash
-   sudo ./dist/wifi-pwner --interface wlan0 --autocrack --wordlist ./dist/rockyou.txt
+   sudo ./dist/wifi-pwner --interface wlan0 --autocrack ./dist/rockyou.txt
    ```
 
 2. **Download wordlist** during build (recommended):
@@ -226,7 +247,7 @@ The build script can automatically download the popular rockyou.txt wordlist:
 - **Location**: Saved to `dist/rockyou.txt`
 - **Manual download**: https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt
 
-You can also use custom wordlists by specifying the path with `--wordlist`.
+You can also use custom wordlists by specifying the path with `--autocrack`.
 
 ## Web Interface
 

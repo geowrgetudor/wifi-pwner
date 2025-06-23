@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 )
 
 type Scanner struct {
@@ -65,7 +64,7 @@ func (s *Scanner) LoadWhitelist() error {
 	return scanner.Err()
 }
 
-func (s *Scanner) StartContinuousScanning() error {
+func (s *Scanner) StartScanning() error {
 	s.scanMutex.Lock()
 	if s.scanning {
 		s.scanMutex.Unlock()
@@ -74,85 +73,63 @@ func (s *Scanner) StartContinuousScanning() error {
 	s.scanning = true
 	s.scanMutex.Unlock()
 
-	// Set up bettercap for scanning
-	s.bettercap.RunCommand(fmt.Sprintf("set wifi.interface %s", s.config.Interface))
-	s.bettercap.RunCommand("set wifi.deauth.open false")
-
-	channels := s.getChannelsForMode()
-	s.bettercap.RunCommand(fmt.Sprintf("wifi.recon.channel %s", channels))
+	s.bettercap.RunCommand(fmt.Sprintf("set wifi.interface %s; set wifi.deauth.open false; wifi.recon.channel %s", s.config.Interface, s.GetChannelsForMode()))
 	s.bettercap.RunCommand("wifi.recon on")
 
-	go s.continuousScanning()
 	return nil
 }
 
-func (s *Scanner) continuousScanning() {
-	for s.scanning {
-		if !GetScanningEnabled() {
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		sessionData, err := s.bettercap.GetSessionData()
-		if err != nil {
-			log.Printf("[ERROR] Failed to get session data: %v", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		targets := s.parseTargets(sessionData)
-
-		s.targetsMutex.Lock()
-
-		s.globalTargets = make(map[string]*Target)
-
-		for _, target := range targets {
-			targetCopy := target
-
-			exists, err := s.db.TargetExists(target.BSSID)
-			if err != nil {
-				log.Printf("[ERROR] Failed to check target existence: %v", err)
-				continue
-			}
-
-			if !exists {
-				log.Printf("[NEW] Discovered %s (%s) %ddBm", target.ESSID, target.BSSID, target.Signal)
-				s.db.SaveTarget(&target, "", StatusDiscovered)
-			}
-
-			if target.Signal < -70 || target.ESSID == "" {
-				continue
-			}
-
-			s.globalTargets[target.BSSID] = &targetCopy
-		}
-		s.targetsMutex.Unlock()
-	}
-}
-
-func (s *Scanner) StopContinuousScanning() {
+func (s *Scanner) StopScanning() {
 	s.scanMutex.Lock()
+	s.bettercap.RunCommand("wifi.recon off")
 	s.scanning = false
 	s.scanMutex.Unlock()
 }
 
-func (s *Scanner) ScanForTargets() ([]Target, error) {
-	s.targetsMutex.RLock()
-	defer s.targetsMutex.RUnlock()
-
-	targets := make([]Target, 0, len(s.globalTargets))
-	for _, target := range s.globalTargets {
-		targets = append(targets, *target)
+func (s *Scanner) GetTargets() ([]Target, error) {
+	if !GetScanningEnabled() {
+		return []Target{}, nil
 	}
 
-	return targets, nil
+	sessionData, err := s.bettercap.GetSessionData()
+	if err != nil {
+		log.Printf("[ERROR] Failed to get session data: %v", err)
+		return []Target{}, err
+	}
+
+	parsedTargets := s.parseTargets(sessionData)
+
+	s.targetsMutex.Lock()
+	s.globalTargets = make(map[string]*Target)
+
+	var validTargets []Target
+	for _, target := range parsedTargets {
+		targetCopy := target
+
+		exists, err := s.db.TargetExists(target.BSSID)
+		if err != nil {
+			log.Printf("[ERROR] Failed to check target existence: %v", err)
+			continue
+		}
+
+		if !exists {
+			log.Printf("[NEW] Discovered %s (%s) %ddBm", target.ESSID, target.BSSID, target.Signal)
+			s.db.SaveTarget(&target, "", StatusDiscovered)
+		}
+
+		if target.Signal < -70 || target.ESSID == "" {
+			continue
+		}
+
+		s.globalTargets[target.BSSID] = &targetCopy
+		validTargets = append(validTargets, targetCopy)
+	}
+	s.targetsMutex.Unlock()
+
+	return validTargets, nil
 }
 
-func (s *Scanner) GetChannels() string {
-	return s.getChannelsForMode()
-}
-
-func (s *Scanner) getChannelsForMode() string {
+func (s *Scanner) GetChannelsForMode() string {
 	switch s.config.Mode {
 	case "2.4":
 		return "1,2,3,4,5,6,7,8,9,10,11,12,13"
@@ -195,12 +172,6 @@ func (s *Scanner) parseTargets(sessionData *SessionData) []Target {
 	return targets
 }
 
-func (s *Scanner) ClearGlobalTargets() {
-	s.targetsMutex.Lock()
-	defer s.targetsMutex.Unlock()
-	s.globalTargets = make(map[string]*Target)
-}
-
 func (s *Scanner) FindBestAvailableTarget(targets []Target) *Target {
 	type scoredTarget struct {
 		target *Target
@@ -216,7 +187,6 @@ func (s *Scanner) FindBestAvailableTarget(targets []Target) *Target {
 		scoredTargets = append(scoredTargets, scoredTarget{target: target, score: score})
 	}
 
-	// Sort by score (highest first)
 	for i := 0; i < len(scoredTargets); i++ {
 		for j := i + 1; j < len(scoredTargets); j++ {
 			if scoredTargets[j].score > scoredTargets[i].score {
@@ -225,9 +195,7 @@ func (s *Scanner) FindBestAvailableTarget(targets []Target) *Target {
 		}
 	}
 
-	// Find the first target that shouldn't be skipped
 	for _, st := range scoredTargets {
-		// Skip open networks
 		if strings.EqualFold(st.target.Encryption, "Open") ||
 			strings.EqualFold(st.target.Encryption, "None") ||
 			st.target.Encryption == "" {

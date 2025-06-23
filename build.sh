@@ -87,19 +87,17 @@ case $response in
         read -p "Enable automatic cracking? (Y/N) [N]: " autocrack_response
         case $autocrack_response in
             [Yy]) 
-                autocrack_flag="--autocrack"
                 read -p "Path to wordlist [./dist/rockyou.txt]: " wordlist_path
                 wordlist_path=${wordlist_path:-"./dist/rockyou.txt"}
-                wordlist_flag="--wordlist $wordlist_path"
+                autocrack_flag="--autocrack $wordlist_path"
                 ;;
             *) 
                 autocrack_flag=""
-                wordlist_flag=""
                 ;;
         esac
         
         # Build command line arguments
-        CMD_ARGS="--interface $interface --mode $mode --b-api-port $api_port $clean_flag $expose_flag $webui_flag $autocrack_flag $wordlist_flag"
+        CMD_ARGS="--interface $interface --mode $mode --b-api-port $api_port $clean_flag $expose_flag $webui_flag $autocrack_flag"
         
         # Get the current directory
         CURRENT_DIR=$(pwd)
