@@ -26,7 +26,7 @@ A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capt
 
 <br />
 
-## Table of Contents
+## 📚 Table of Contents
 
 - [Features](#features)
 - [Hardware Requirements](#hardware-requirements)
@@ -52,7 +52,7 @@ A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capt
 - [Security Notice](#security-notice)
 - [License](#license)
 
-## Features
+## ✨ Features
 
 - **Mobile-First Design**: Optimized for Raspberry Pi on the move, but works on any Linux distro
 - **Smart Target Selection**: Automatically targets the strongest AP with clients
@@ -70,12 +70,12 @@ Upcoming:
 - GPS support
 - Interactive map
 
-## Hardware Requirements
+## 🔧 Hardware Requirements
 
 - Raspberry Pi (3 / 4 / 400 / 5) or any Laptop/PC with a Linux distro
 - External WiFi adapter with monitor mode & package injection support
 
-## Software Requirements
+## 💿 Software Requirements
 
 - Ubuntu Server 24 or similar Linux distribution
 - Go 1.21+
@@ -83,7 +83,7 @@ Upcoming:
 - [Aircrack-ng](https://github.com/aircrack-ng/aircrack-ng)
 - SQLite3
 
-## Installation
+## 📦 Installation
 
 The installation guide is for Debian based Linux distros, but it should be similar for other distros.
 
@@ -143,7 +143,7 @@ The build script will:
 - Optionally download the rockyou.txt wordlist for password cracking
 - Optionally set up a systemd service for auto-start
 
-## Upgrade
+## ⬆️ Upgrade
 
 To upgrade WiFi Pwner to the latest version:
 
@@ -164,7 +164,7 @@ To upgrade WiFi Pwner to the latest version:
 - **Database compatibility**: If you need to downgrade, download/build the older version and use the `--clean` flag to reset the database and captures
 - **Backup recommendation**: Consider backing up your `scanned.db` and `scanned/` directory before upgrading
 
-## Usage
+## 🚀 Usage
 
 ### Basic Usage
 
@@ -207,7 +207,7 @@ sudo ./dist/wifi-pwner --interface wlan0 --autocrack ./dist/rockyou.txt
 sudo ./dist/wifi-pwner --interface wlan0 --autocrack /path/to/custom/wordlist.txt
 ```
 
-## Automatic Password Cracking
+## 🔐 Automatic Password Cracking
 
 WiFi Pwner includes built-in automatic WPA2 handshake cracking functionality using aircrack-ng:
 
@@ -249,7 +249,7 @@ The build script can automatically download the popular rockyou.txt wordlist:
 
 You can also use custom wordlists by specifying the path with `--autocrack`.
 
-## Web Interface
+## 🌐 Web Interface
 
 When enabled (default), access the web dashboard at `http://localhost:8080` to view:
 
@@ -276,7 +276,7 @@ All runtime files are created in the directory where `wifi-pwner` is executed:
         └── handshake.pcap
 ```
 
-## Whitelist Format
+## 📋 Whitelist Format
 
 The build script creates a `whitelist.txt` file from the `whitelist.txt.example` template. Edit this file to skip specific BSSIDs:
 
@@ -293,7 +293,7 @@ The build script creates a `whitelist.txt` file from the `whitelist.txt.example`
 
 The tool automatically looks for `whitelist.txt` in the directory where `wifi-pwner` is executed. If no whitelist file exists, all discovered networks (meeting signal requirements) will be targeted.
 
-## Systemd Service
+## 🔄 Systemd Service
 
 The build script can optionally set up a systemd service for automatic startup:
 
@@ -313,7 +313,7 @@ sudo journalctl -u wifi-pwner.service -f
 
 The service runs from the `dist/` directory and includes a 60-second delay on startup to ensure network interfaces are ready.
 
-## Troubleshooting
+## 🛠️ Troubleshooting
 
 ### Interface not found
 
@@ -365,10 +365,10 @@ go mod tidy
 go build -v -x
 ```
 
-## Security Notice
+## ⚠️ Security Notice
 
 This tool is for educational and authorized security testing purposes only. Always ensure you have explicit permission before testing on any network. Unauthorized access to computer networks is illegal and unethical.
 
-## License
+## 📄 License
 
 This project is provided as-is for educational purposes. Use responsibly and legally.
