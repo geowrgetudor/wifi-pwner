@@ -108,7 +108,6 @@ func (s *Scanner) continuousScanning() {
 
 		for _, target := range targets {
 			targetCopy := target
-			s.globalTargets[target.BSSID] = &targetCopy
 
 			exists, err := s.db.TargetExists(target.BSSID)
 			if err != nil {
@@ -120,6 +119,12 @@ func (s *Scanner) continuousScanning() {
 				log.Printf("[NEW] Discovered %s (%s) %ddBm", target.ESSID, target.BSSID, target.Signal)
 				s.db.SaveTarget(&target, "", StatusDiscovered)
 			}
+
+			if target.Signal < -70 || target.ESSID == "" {
+				continue
+			}
+
+			s.globalTargets[target.BSSID] = &targetCopy
 		}
 		s.targetsMutex.Unlock()
 	}
@@ -162,10 +167,6 @@ func (s *Scanner) parseTargets(sessionData *SessionData) []Target {
 	var targets []Target
 
 	for _, ap := range sessionData.WiFi.APs {
-		if ap.RSSI < -70 || ap.Hostname == "" {
-			continue
-		}
-
 		if s.whitelistBSSIDs[strings.ToUpper(ap.MAC)] {
 			continue
 		}

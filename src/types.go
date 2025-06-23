@@ -16,7 +16,6 @@ type Status string
 const (
 	StatusDiscovered        Status = "Discovered"
 	StatusScanning          Status = "Scanning"
-	StatusFailedToScan      Status = "Failed to Scan"
 	StatusFailedToCap       Status = "Failed to Cap Handshake"
 	StatusHandshakeCaptured Status = "Handshake Captured"
 	StatusCracked           Status = "Cracked"
@@ -28,7 +27,6 @@ func GetAllStatuses() []string {
 	return []string{
 		string(StatusDiscovered),
 		string(StatusScanning),
-		string(StatusFailedToScan),
 		string(StatusFailedToCap),
 		string(StatusHandshakeCaptured),
 		string(StatusCracked),

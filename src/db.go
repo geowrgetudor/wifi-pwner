@@ -145,7 +145,7 @@ func (d *Database) ShouldSkipTarget(bssid string) (bool, error) {
 		return true, nil
 	}
 
-	if status.String == string(StatusFailedToScan) || status.String == string(StatusFailedToCap) {
+	if status.String == string(StatusFailedToCap) {
 		if !lastScan.Valid {
 			return false, nil
 		}
@@ -358,19 +358,19 @@ func (d *Database) ResetScanningStatus() error {
 func (d *Database) GetTarget(bssid string) map[string]interface{} {
 	var (
 		b, essid, channel, encryption, status, handshakePath, lastScan, crackedPassword string
-		signal int
+		signal                                                                          int
 	)
-	
+
 	err := d.db.QueryRow(`
 		SELECT bssid, essid, channel, signal, encryption, status, handshake_path, last_scan, cracked_password
 		FROM scanned
 		WHERE bssid = ?
 	`, bssid).Scan(&b, &essid, &channel, &signal, &encryption, &status, &handshakePath, &lastScan, &crackedPassword)
-	
+
 	if err != nil {
 		return nil
 	}
-	
+
 	return map[string]interface{}{
 		"bssid":           b,
 		"essid":           essid,

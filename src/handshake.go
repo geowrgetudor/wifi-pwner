@@ -37,9 +37,9 @@ func (h *HandshakeCapture) CaptureHandshake(target *Target, channels string) (st
 
 	h.bettercap.RunCommand(fmt.Sprintf("wifi.recon.channel %s; set ticker.period 2; set ticker.commands \"wifi.deauth %s\"; ticker on", target.Channel, target.BSSID))
 
-	time.Sleep(12 * time.Second)
+	time.Sleep(10 * time.Second)
 	h.bettercap.RunCommand("ticker off")
-	time.Sleep(8 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	h.bettercap.RunCommand(fmt.Sprintf("wifi.recon.channel %s", channels))
 
