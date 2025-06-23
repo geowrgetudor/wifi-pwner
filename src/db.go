@@ -362,7 +362,7 @@ func (d *Database) GetTarget(bssid string) map[string]interface{} {
 	)
 	
 	err := d.db.QueryRow(`
-		SELECT bssid, essid, channel, signal, encryption, status, handshake_path, lastScan, cracked_password
+		SELECT bssid, essid, channel, signal, encryption, status, handshake_path, last_scan, cracked_password
 		FROM scanned
 		WHERE bssid = ?
 	`, bssid).Scan(&b, &essid, &channel, &signal, &encryption, &status, &handshakePath, &lastScan, &crackedPassword)
