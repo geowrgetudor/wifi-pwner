@@ -378,9 +378,9 @@ func (d *Database) GetTarget(bssid string) map[string]interface{} {
 		"signal":          signal,
 		"encryption":      encryption,
 		"status":          status,
-		"handshake_path":  handshakePath,
+		"handshakePath":   handshakePath,
 		"lastScan":        lastScan,
-		"cracked_password": crackedPassword,
+		"crackedPassword": crackedPassword,
 	}
 }
 
