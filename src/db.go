@@ -415,14 +415,6 @@ func (d *Database) GetPaginatedProbes(params FilterParams) (*PaginatedResult, er
 		searchTerm := "%" + params.Search + "%"
 		args = append(args, searchTerm, searchTerm)
 	}
-	if params.Channel != "" {
-		whereClause += " AND channel = ?"
-		args = append(args, params.Channel)
-	}
-	if params.Vendor != "" {
-		whereClause += " AND vendor = ?"
-		args = append(args, params.Vendor)
-	}
 
 	var totalCount int
 	countQuery := "SELECT COUNT(*) FROM probes WHERE " + whereClause
@@ -435,7 +427,7 @@ func (d *Database) GetPaginatedProbes(params FilterParams) (*PaginatedResult, er
 
 	offset := (params.Page - 1) * params.PerPage
 	query := `
-		SELECT essid, mac, signal, channel, vendor, probed_at 
+		SELECT essid, mac, signal, vendor, probed_at 
 		FROM probes 
 		WHERE ` + whereClause + `
 		ORDER BY probed_at DESC
@@ -451,11 +443,11 @@ func (d *Database) GetPaginatedProbes(params FilterParams) (*PaginatedResult, er
 
 	var probes []map[string]interface{}
 	for rows.Next() {
-		var essid, mac, channel, vendor string
+		var essid, mac, vendor string
 		var signal int
 		var probedAt time.Time
 
-		err := rows.Scan(&essid, &mac, &signal, &channel, &vendor, &probedAt)
+		err := rows.Scan(&essid, &mac, &signal, &vendor, &probedAt)
 		if err != nil {
 			continue
 		}
@@ -464,7 +456,6 @@ func (d *Database) GetPaginatedProbes(params FilterParams) (*PaginatedResult, er
 			"essid":    essid,
 			"mac":      mac,
 			"signal":   signal,
-			"channel":  channel,
 			"vendor":   vendor,
 			"probedAt": probedAt.Format("2006-01-02 15:04:05"),
 		}
