@@ -34,7 +34,7 @@ func (w *WebServer) Start() {
 	go http.ListenAndServe(":"+DefaultWebPort, mux)
 }
 
-type DashboardData struct {
+type ApsData struct {
 	Result      *PaginatedResult
 	Search      string
 	Encryption  string
@@ -46,12 +46,8 @@ type DashboardData struct {
 }
 
 type ProbePageData struct {
-	Result   *PaginatedResult
-	Search   string
-	Channel  string
-	Vendor   string
-	Channels []string
-	Vendors  []string
+	Result *PaginatedResult
+	Search string
 }
 
 func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
@@ -84,7 +80,7 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
 	channels, _ := w.db.GetUniqueChannels()
 	statuses := GetAllStatuses()
 
-	data := DashboardData{
+	data := ApsData{
 		Result:      result,
 		Search:      search,
 		Encryption:  encryption,
@@ -438,6 +434,7 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
 
             <!-- Table -->
             <div class="overflow-x-auto">
+                {{if .Result.Targets}}
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -538,6 +535,12 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
                         {{end}}
                     </tbody>
                 </table>
+                {{else}}
+                <div class="text-center py-12">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No access points found</h3>
+                    <p class="text-gray-600">No access points match your current filters. Try adjusting your search criteria.</p>
+                </div>
+                {{end}}
             </div>
 
             <!-- Pagination -->
@@ -950,13 +953,9 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	search := strings.TrimSpace(req.URL.Query().Get("search"))
-	channel := req.URL.Query().Get("channel")
-	vendor := req.URL.Query().Get("vendor")
 
 	params := FilterParams{
 		Search:  search,
-		Channel: channel,
-		Vendor:  vendor,
 		Page:    page,
 		PerPage: 20,
 	}
@@ -967,23 +966,9 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	channels, err := w.db.GetUniqueProbeChannels()
-	if err != nil {
-		channels = []string{}
-	}
-
-	vendors, err := w.db.GetUniqueProbeVendors()
-	if err != nil {
-		vendors = []string{}
-	}
-
 	data := ProbePageData{
-		Result:   result,
-		Search:   search,
-		Channel:  channel,
-		Vendor:   vendor,
-		Channels: channels,
-		Vendors:  vendors,
+		Result: result,
+		Search: search,
 	}
 
 	tmpl := `
@@ -1061,30 +1046,45 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
                     </tbody>
                 </table>
                 {{else}}
-                <div class="empty-state">
-                    <h3>No probe requests found</h3>
-                    <p>No client probe requests match your current filters. Try adjusting your search criteria.</p>
+                <div class="text-center py-12 px-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No probe requests found</h3>
+                    <p class="text-gray-600">No client probe requests match your current filters. Try adjusting your search criteria.</p>
                 </div>
                 {{end}}
             </div>
 
+            <!-- Pagination -->
             {{if gt .Result.TotalPages 1}}
-            <div class="pagination">
-                {{if gt .Result.Page 1}}
-                <a href="?page={{sub .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}">‹ Previous</a>
-                {{end}}
-                
-                {{range pageRange .Result.TotalPages .Result.Page}}
-                {{if eq . $.Result.Page}}
-                <span class="current">{{.}}</span>
-                {{else}}
-                <a href="?page={{.}}{{if $.Search}}&search={{$.Search}}{{end}}{{if $.Channel}}&channel={{$.Channel}}{{end}}">{{.}}</a>
-                {{end}}
-                {{end}}
-                
-                {{if lt .Result.Page .Result.TotalPages}}
-                <a href="?page={{add .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}">Next ›</a>
-                {{end}}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Showing {{if .Result.Targets}}{{add (mul (sub .Result.Page 1) .Result.PerPage) 1}} to {{min (mul .Result.Page .Result.PerPage) .Result.TotalCount}}{{else}}0{{end}} of {{.Result.TotalCount}} results
+                    </div>
+                    <div class="flex space-x-2">
+                        {{if gt .Result.Page 1}}
+                        <a href="?page={{sub .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}" 
+                           class="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                            Previous
+                        </a>
+                        {{end}}
+                        
+                        {{range pageRange .Result.TotalPages .Result.Page}}
+                        {{if eq . $.Result.Page}}
+                        <span class="px-3 py-1 bg-blue-600 text-white rounded-md text-sm">{{.}}</span>
+                        {{else}}
+                        <a href="?page={{.}}{{if $.Search}}&search={{$.Search}}{{end}}{{if $.Channel}}&channel={{$.Channel}}{{end}}" 
+                           class="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">{{.}}</a>
+                        {{end}}
+                        {{end}}
+                        
+                        {{if lt .Result.Page .Result.TotalPages}}
+                        <a href="?page={{add .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}" 
+                           class="px-3 py-1 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                            Next
+                        </a>
+                        {{end}}
+                    </div>
+                </div>
             </div>
             {{end}}
         </div>

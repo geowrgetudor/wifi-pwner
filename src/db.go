@@ -480,37 +480,3 @@ func (d *Database) GetPaginatedProbes(params FilterParams) (*PaginatedResult, er
 		TotalPages: totalPages,
 	}, nil
 }
-
-func (d *Database) GetUniqueProbeChannels() ([]string, error) {
-	rows, err := d.db.Query("SELECT DISTINCT channel FROM probes WHERE channel != '' ORDER BY CAST(channel AS INTEGER)")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var channels []string
-	for rows.Next() {
-		var channel string
-		if err := rows.Scan(&channel); err == nil {
-			channels = append(channels, channel)
-		}
-	}
-	return channels, nil
-}
-
-func (d *Database) GetUniqueProbeVendors() ([]string, error) {
-	rows, err := d.db.Query("SELECT DISTINCT vendor FROM probes WHERE vendor != '' ORDER BY vendor")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var vendors []string
-	for rows.Next() {
-		var vendor string
-		if err := rows.Scan(&vendor); err == nil {
-			vendors = append(vendors, vendor)
-		}
-	}
-	return vendors, nil
-}
