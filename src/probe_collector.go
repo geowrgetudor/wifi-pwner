@@ -86,23 +86,27 @@ func (pc *ProbeCollector) processEvents() {
 }
 
 func (pc *ProbeCollector) processProbeEvent(event BettercapEvent) {
+	// Extract data from the flexible data structure
+	essid, _ := event.Data["essid"].(string)
+	mac, _ := event.Data["mac"].(string)
+	vendor, _ := event.Data["vendor"].(string)
+	
+	// Convert RSSI to int (might be float64 from JSON)
+	var rssi int
+	if rssiFloat, ok := event.Data["rssi"].(float64); ok {
+		rssi = int(rssiFloat)
+	}
+	
 	// Extract channel from RSSI or other available data
 	// For now, we'll use a placeholder since channel isn't directly available in probe events
 	channel := "unknown"
 	
-	err := pc.db.SaveProbe(
-		event.Data.ESSID,
-		event.Data.MAC,
-		event.Data.RSSI,
-		channel,
-		event.Data.Vendor,
-	)
+	err := pc.db.SaveProbe(essid, mac, rssi, channel, vendor)
 	
 	if err != nil {
 		log.Printf("[PROBE] Error saving probe: %v", err)
 		return
 	}
 	
-	log.Printf("[PROBE] Saved probe: %s -> %s (RSSI: %d)", 
-		event.Data.MAC, event.Data.ESSID, event.Data.RSSI)
+	log.Printf("[PROBE] Saved probe: %s -> %s (RSSI: %d)", mac, essid, rssi)
 }

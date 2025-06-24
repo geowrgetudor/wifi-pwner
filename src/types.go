@@ -74,9 +74,9 @@ type ProbeData struct {
 }
 
 type BettercapEvent struct {
-	Tag  string      `json:"tag"`
-	Time string      `json:"time"`
-	Data ProbeData   `json:"data"`
+	Tag  string                 `json:"tag"`
+	Time string                 `json:"time"`
+	Data map[string]interface{} `json:"data"`
 }
 
 const (
