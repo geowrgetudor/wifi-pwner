@@ -389,12 +389,12 @@ func (d *Database) DeleteTarget(bssid string) error {
 	return err
 }
 
-func (d *Database) SaveProbe(essid, mac string, signal int, channel, vendor string) error {
+func (d *Database) SaveProbe(essid, mac string, signal int, vendor string) error {
 	_, err := d.db.Exec(`
 		INSERT OR REPLACE INTO probes 
-		(essid, mac, signal, channel, vendor, probed_at) 
-		VALUES (?, ?, ?, ?, ?, ?)`,
-		essid, mac, signal, channel, vendor, time.Now(),
+		(essid, mac, signal, vendor, probed_at) 
+		VALUES (?, ?, ?, ?, ?)`,
+		essid, mac, signal, vendor, time.Now(),
 	)
 	return err
 }

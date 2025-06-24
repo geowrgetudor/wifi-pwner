@@ -377,9 +377,9 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
             <!-- Breadcrumb Navigation -->
             <div class="px-6 py-3 bg-gray-100 border-b border-gray-200">
                 <div class="breadcrumb">
-                    <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">🏠 Dashboard</a>
+                    <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">Dashboard</a>
                     <span class="text-gray-500 mx-2">→</span>
-                    <span class="text-gray-900 text-sm font-medium">📡 Access Points</span>
+                    <span class="text-gray-900 text-sm font-medium">APs</span>
                 </div>
             </div>
 
@@ -1010,43 +1010,30 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
             <!-- Breadcrumb Navigation -->
             <div class="px-6 py-3 bg-gray-100 border-b border-gray-200">
                 <div class="breadcrumb">
-                    <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">🏠 Dashboard</a>
+                    <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">Dashboard</a>
                     <span class="text-gray-500 mx-2">→</span>
-                    <span class="text-gray-900 text-sm font-medium">📡 Access Points</span>
+                    <span class="text-gray-900 text-sm font-medium">Probes</span>
                 </div>
             </div>
 
-            <div class="controls">
-                <form method="GET" class="filters">
-                    <div class="form-group">
-                        <label for="search">Search ESSID or MAC</label>
-                        <input type="text" id="search" name="search" value="{{.Search}}" placeholder="Enter ESSID or MAC address...">
+            <!-- Search and Filters -->
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <form id="searchForm" method="GET" class="space-y-4">
+                    <!-- Search Bar -->
+                    <div class="flex space-x-4">
+                        <div class="flex-1">
+                            <input type="text" name="search" value="{{.Search}}" 
+                                   placeholder="Search by ESSID or MAC..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Search
+                        </button>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="channel">Channel</label>
-                        <select id="channel" name="channel">
-                            <option value="">All Channels</option>
-                            {{range .Channels}}
-                            <option value="{{.}}" {{if eq . $.Channel}}selected{{end}}>{{.}}</option>
-                            {{end}}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="vendor">Vendor</label>
-                        <select id="vendor" name="vendor">
-                            <option value="">All Vendors</option>
-                            {{range .Vendors}}
-                            <option value="{{.}}" {{if eq . $.Vendor}}selected{{end}}>{{.}}</option>
-                            {{end}}
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">🔍 Filter</button>
                 </form>
             </div>
 
+            <!-- Table -->
             <div class="overflow-x-auto">
                 {{if .Result.Targets}}
                 <table class="min-w-full divide-y divide-gray-200">
@@ -1062,13 +1049,13 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
                     <tbody class="bg-white divide-y divide-gray-200">
                         {{range .Result.Targets}}
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{.essid}}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{{.mac}}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{index . "essid"}}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">{{index . "mac"}}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{.signal}} dBm
+                                {{index . "signal"}} dBm
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{.vendor}}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{.probedAt}}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{index . "vendor"}}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{index . "probedAt"}}</td>
                         </tr>
                         {{end}}
                     </tbody>
