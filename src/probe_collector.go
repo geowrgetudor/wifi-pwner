@@ -1,6 +1,7 @@
 package src
 
 import (
+	"encoding/json"
 	"log"
 	"sync"
 	"time"
@@ -86,14 +87,21 @@ func (pc *ProbeCollector) processEvents() {
 }
 
 func (pc *ProbeCollector) processProbeEvent(event BettercapEvent) {
-	// Extract data from the flexible data structure
-	essid, _ := event.Data["essid"].(string)
-	mac, _ := event.Data["mac"].(string)
-	vendor, _ := event.Data["vendor"].(string)
+	// Parse the raw JSON data into a map for probe events
+	var probeData map[string]interface{}
+	if err := json.Unmarshal(event.Data, &probeData); err != nil {
+		log.Printf("[PROBE] Error parsing probe data: %v", err)
+		return
+	}
+	
+	// Extract data from the parsed structure
+	essid, _ := probeData["essid"].(string)
+	mac, _ := probeData["mac"].(string)
+	vendor, _ := probeData["vendor"].(string)
 	
 	// Convert RSSI to int (might be float64 from JSON)
 	var rssi int
-	if rssiFloat, ok := event.Data["rssi"].(float64); ok {
+	if rssiFloat, ok := probeData["rssi"].(float64); ok {
 		rssi = int(rssiFloat)
 	}
 	

@@ -1,6 +1,9 @@
 package src
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Target struct {
 	BSSID      string
@@ -74,9 +77,9 @@ type ProbeData struct {
 }
 
 type BettercapEvent struct {
-	Tag  string                 `json:"tag"`
-	Time string                 `json:"time"`
-	Data map[string]interface{} `json:"data"`
+	Tag  string          `json:"tag"`
+	Time string          `json:"time"`
+	Data json.RawMessage `json:"data"`
 }
 
 const (
