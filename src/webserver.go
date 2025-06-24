@@ -49,7 +49,9 @@ type ProbePageData struct {
 	Result   *PaginatedResult
 	Search   string
 	Channel  string
+	Vendor   string
 	Channels []string
+	Vendors  []string
 }
 
 func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
@@ -369,6 +371,15 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Breadcrumb Navigation -->
+            <div class="px-6 py-3 bg-gray-100 border-b border-gray-200">
+                <div class="breadcrumb">
+                    <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">🏠 Dashboard</a>
+                    <span class="text-gray-500 mx-2">→</span>
+                    <span class="text-gray-900 text-sm font-medium">📡 Access Points</span>
                 </div>
             </div>
 
@@ -940,10 +951,12 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
 
 	search := strings.TrimSpace(req.URL.Query().Get("search"))
 	channel := req.URL.Query().Get("channel")
+	vendor := req.URL.Query().Get("vendor")
 
 	params := FilterParams{
 		Search:  search,
 		Channel: channel,
+		Vendor:  vendor,
 		Page:    page,
 		PerPage: 20,
 	}
@@ -959,11 +972,18 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
 		channels = []string{}
 	}
 
+	vendors, err := w.db.GetUniqueProbeVendors()
+	if err != nil {
+		vendors = []string{}
+	}
+
 	data := ProbePageData{
 		Result:   result,
 		Search:   search,
 		Channel:  channel,
+		Vendor:   vendor,
 		Channels: channels,
+		Vendors:  vendors,
 	}
 
 	tmpl := `
@@ -1023,7 +1043,7 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
         }
         .filters {
             display: grid;
-            grid-template-columns: 2fr 1fr auto;
+            grid-template-columns: 2fr 1fr 1fr auto;
             gap: 1rem;
             align-items: end;
         }
@@ -1122,9 +1142,26 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
             margin-bottom: 1rem;
             color: #333;
         }
+        .signal-weak {
+            color: #dc2626;
+            font-weight: 500;
+        }
+        .signal-medium {
+            color: #f59e0b;
+            font-weight: 500;
+        }
+        .signal-strong {
+            color: #059669;
+            font-weight: 500;
+        }
         @media (max-width: 768px) {
             .filters {
                 grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .filters {
+                grid-template-columns: 1fr 1fr;
             }
             .table-container {
                 overflow-x: auto;
@@ -1164,6 +1201,16 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
                     </select>
                 </div>
                 
+                <div class="form-group">
+                    <label for="vendor">Vendor</label>
+                    <select id="vendor" name="vendor">
+                        <option value="">All Vendors</option>
+                        {{range .Vendors}}
+                        <option value="{{.}}" {{if eq . $.Vendor}}selected{{end}}>{{.}}</option>
+                        {{end}}
+                    </select>
+                </div>
+                
                 <button type="submit" class="btn btn-primary">🔍 Filter</button>
             </form>
         </div>
@@ -1186,7 +1233,20 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
                     <tr>
                         <td><strong>{{.essid}}</strong></td>
                         <td><code>{{.mac}}</code></td>
-                        <td>{{.signal}} dBm</td>
+                        <td>
+                            <div style="display: flex; align-items: center;">
+                                <span class="{{if lt .signal -70}}signal-weak{{else if lt .signal -50}}signal-medium{{else}}signal-strong{{end}}">
+                                    {{.signal}} dBm
+                                </span>
+                                {{if lt .signal -70}}
+                                <span style="margin-left: 8px; color: #f59e0b; font-size: 0.9em;">⚠️</span>
+                                {{else if lt .signal -50}}
+                                <span style="margin-left: 8px; color: #10b981; font-size: 0.9em;">📶</span>
+                                {{else}}
+                                <span style="margin-left: 8px; color: #059669; font-size: 0.9em;">📶📶</span>
+                                {{end}}
+                            </div>
+                        </td>
                         <td>{{.channel}}</td>
                         <td>{{.vendor}}</td>
                         <td>{{.probedAt}}</td>

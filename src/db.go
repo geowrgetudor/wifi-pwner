@@ -168,6 +168,7 @@ type FilterParams struct {
 	Encryption string
 	Channel    string
 	Status     string
+	Vendor     string
 	Page       int
 	PerPage    int
 }
@@ -418,6 +419,10 @@ func (d *Database) GetPaginatedProbes(params FilterParams) (*PaginatedResult, er
 		whereClause += " AND channel = ?"
 		args = append(args, params.Channel)
 	}
+	if params.Vendor != "" {
+		whereClause += " AND vendor = ?"
+		args = append(args, params.Vendor)
+	}
 
 	var totalCount int
 	countQuery := "SELECT COUNT(*) FROM probes WHERE " + whereClause
@@ -491,4 +496,21 @@ func (d *Database) GetUniqueProbeChannels() ([]string, error) {
 		}
 	}
 	return channels, nil
+}
+
+func (d *Database) GetUniqueProbeVendors() ([]string, error) {
+	rows, err := d.db.Query("SELECT DISTINCT vendor FROM probes WHERE vendor != '' ORDER BY vendor")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var vendors []string
+	for rows.Next() {
+		var vendor string
+		if err := rows.Scan(&vendor); err == nil {
+			vendors = append(vendors, vendor)
+		}
+	}
+	return vendors, nil
 }
