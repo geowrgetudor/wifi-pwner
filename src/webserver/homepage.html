@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WiFi Pwner - Dashboard</title>
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFVElEQVR4nO3dQW7bRhiG4V8JYHjVpmu5q25a94K9ao6Q46Q3yQFylRzAXXfbq6R7QfcCvYGBJi4SfKVMhiJpDvX+L+B1LVMmNf+Z+YdjkzRJYkopPfV9f9/3/X3TNHdN03xqmuZz0zQfm6b50DTNu6Zp3lZV9aaqqldt27781rbtbynrfdu2r/+u/r3frz9TPqLKhyeqlGF/YGzRPj4w6ry5M0FUqZevdNdwJojKQmPb6K7hTBCViqa20V3DmSAqC41to7uGM0FUFhrbRncNZ4KoLDS2je4azgRRWWhsG901nAmistDYNrprOBNEZaGxbXTXcCaIykJj2+iu4UwQlYXGttFdw5kgKguNbaO7hjNBVBYa20Z3DWeCqCw0to3uGs4EUVlobBvdNZwJorLQ2Da6azgTRGWhsW101nAmeBSVhca20V3DmeikqjLn3l9vNputaZoVIsKjhcUqy2Tq7+U9Py0qSJKkTOqm/w1/k9LQ+v8pCdMZO8U83z4OKhRVNP8X/DElYTrj5wRTd4D5sKggSeJMMMdFFU0f58N8WlRZBVFRzOFFFRWEikLd4sOigpRjjO4azgRRWWhsG901nAmistDYNrprOBNEZaGxbXTXcCaIykJj2+iu4UwQlYXGttFdw5kgKguNbaO7hjNBVBYa20Z3DWeCqCw0to3uGs4EUVlobBvdNZwJorLQ2Da6azgTRGWhsW101nAmiBo+N8Y13DWcCaKy0Ng2ums4E0RlobFtdNdwJojKQmPb6K7hTBCVhca20V3DmSAqC41to7uGM0FUFhrbRncNZ4KoLDS2je4azgRRWWhsG901nAmistDYNrprOBNEZaGxbXTXcCaIykJj2+iu4UwQlYXGttFdw5kgKguNbaO7hjNBVBYa20Z3DWeCqCw0to3uGs4EUVlobBvdNZwJorLQ2Da6azgTRGWhsW101nAmiMpGY9voruFMEJWNxrbRXcOZICobY9voruFMEJWNsW3017fKkySptjbgtxnKwWq10l3DmSAqG41to7uGM0FUNhrbRncNZ4KobDS2je4azgRR2WhsG901nAmistHYNrprOBNEZaOxbXTXcCaIykZj2+iu4UwQlY3GttFdw5kgKhuNbaO7hjNBVDYa20Z3DWeCqGw0to3uGs4EUdlobBvdNZwJorLR2Da6azgTRGWjsW101nAmiBo+N8Y13DWcCaKy0dg2ums4E0Rlo7FtdNdwJojKRmPb6K7hTBCVjca20V3DmSAqG41to7uGM0FUNhrbRncNZ4KobDS2je4azgRR2WhsG901nAmistHYNrprOBNEZaOxbXTXcCaIykZj2+iu4TwTRH2vYGya7hrOM0FUJo1toxPBmSAqk8a20YngTBCVSWPb6ERwJojKpLFtdCI4E0Rl0tg2OhGcCaIyaWwbnQjOBFGZNLaNTgRngqhMGttGJ4IzQVQmjW2jE8GZICqTxrbRieBMEJVJY9voRHAmiMqksW10IjgTRGXS2DY6EZwJojJpbBudCM4EUZk0to1OBGeCqEwa20YngjNBVCaNbaMTwZkgKpPGttGJ4EwQlUlj2+hEcCaIyqSxbXQiOBNEZdLYNjoRnAmiMmlsG50IzgRRmTS2jU4EZ4KoTBrbRieCM0FUJo1toxPBmSAqk8a20YngTBCVSWPb6ERwJojKpLFtdCKI+l7B2DS6azjPBFGZNLaNTgRngqhMGttGJ4IzQVQmjW2jE8GZICqTxrbRieBMEJVJY9voRHAmiMqksW10IjgTRGXS2DY6EZwJojJpbBudCM4EUZk0to1OBGeCqEwa20YngjNBVCaNbaMTwZkgKpPGttGJ4EwQlUlj2+hEcCaIyqSxbXQiOBNEZdLYNjoRnAmikqeZx/qTJOkNUX8A7q8XJNfhqpsAAAAASUVORK5CYII="
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+      .header h1 {
+        color: white;
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      .header p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.2rem;
+      }
+      .nav-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+      }
+      .nav-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-decoration: none;
+        color: #333;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .nav-card:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+      .nav-card:hover:before {
+        left: 100%;
+      }
+      .nav-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      }
+      .nav-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: #667eea;
+      }
+      .nav-card p {
+        color: #666;
+        line-height: 1.5;
+      }
+      .stats {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+      }
+      .stats h3 {
+        color: white;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+      .stat-item {
+        text-align: center;
+        color: white;
+      }
+      .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+      .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🔒 WiFi Pwner</h1>
+        <p>Wireless Network Security Testing Dashboard</p>
+      </div>
+
+      <div class="nav-cards">
+        <a href="/aps" class="nav-card">
+          <h3>📡 Access Points</h3>
+          <p>
+            View and manage discovered wireless access points. Monitor handshake
+            capture progress and security analysis.
+          </p>
+        </a>
+
+        <a href="/probes" class="nav-card">
+          <h3>🔍 Client Probes</h3>
+          <p>
+            Monitor WiFi client probe requests. See which networks devices are
+            actively searching for.
+          </p>
+        </a>
+      </div>
+
+      <div class="stats">
+        <h3>📊 System Status</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-number" id="scanning-status">⏸️</div>
+            <div class="stat-label">Scanning Status</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="cracking-status">⏸️</div>
+            <div class="stat-label">Auto-Crack Status</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Update status indicators
+      async function updateStatus() {
+        try {
+          const response = await fetch("/api/status");
+          const data = await response.json();
+
+          document.getElementById("scanning-status").textContent = data.scanning
+            ? "🟢"
+            : "⏸️";
+          document.getElementById("cracking-status").textContent = data.cracking
+            ? "🔓"
+            : "⏸️";
+        } catch (error) {
+          console.error("Error fetching status:", error);
+        }
+      }
+
+      // Update status every 5 seconds
+      updateStatus();
+      setInterval(updateStatus, 5000);
+    </script>
+  </body>
+</html>

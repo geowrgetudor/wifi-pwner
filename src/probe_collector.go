@@ -79,10 +79,36 @@ func (pc *ProbeCollector) processEvents() {
 		return
 	}
 	
+	// Collect unique probes using a map with essid+mac as key
+	uniqueProbes := make(map[string]BettercapEvent)
+	
 	for _, event := range events {
 		if event.Tag == "wifi.client.probe" {
-			pc.processProbeEvent(event)
+			// Parse the event to get essid and mac for deduplication
+			var probeData map[string]interface{}
+			if err := json.Unmarshal(event.Data, &probeData); err != nil {
+				log.Printf("[PROBE] Error parsing probe data for deduplication: %v", err)
+				continue
+			}
+			
+			essid, _ := probeData["essid"].(string)
+			mac, _ := probeData["mac"].(string)
+			
+			// Create composite key for uniqueness
+			key := essid + "|" + mac
+			
+			// Only keep the latest event for each unique combination
+			uniqueProbes[key] = event
 		}
+	}
+	
+	// Process only unique probes
+	for _, event := range uniqueProbes {
+		pc.processProbeEvent(event)
+	}
+	
+	if len(uniqueProbes) > 0 {
+		log.Printf("[PROBE] Processed %d unique probes out of %d total probe events", len(uniqueProbes), len(events))
 	}
 }
 
