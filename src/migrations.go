@@ -35,7 +35,6 @@ var migrations = []Migration{
 				essid TEXT,
 				mac TEXT,
 				signal INTEGER,
-				channel TEXT,
 				vendor TEXT,
 				probed_at DATETIME,
 				UNIQUE(essid, mac)

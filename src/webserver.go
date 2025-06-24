@@ -345,7 +345,7 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900">WiFi Pwner - APs</h1>
                         <p class="text-sm text-gray-600 mt-1">
-                            Showing {{.Result.TotalCount}} total targets
+                            Showing {{.Result.TotalCount}} total APs
                             {{if gt .Result.TotalPages 1}}
                                 (Page {{.Result.Page}} of {{.Result.TotalPages}})
                             {{end}}
@@ -988,6 +988,12 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
                 <div class="flex justify-between items-start">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-900">WiFi Pwner - Probes</h1>
+                        <p class="text-sm text-gray-600 mt-1">
+                            Showing {{.Result.TotalCount}} total probes
+                            {{if gt .Result.TotalPages 1}}
+                                (Page {{.Result.Page}} of {{.Result.TotalPages}})
+                            {{end}}
+                        </p>
                     </div>
                 </div>
             </div>
