@@ -1115,6 +1115,13 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
 	funcMap := template.FuncMap{
 		"add": func(a, b int) int { return a + b },
 		"sub": func(a, b int) int { return a - b },
+		"mul": func(a, b int) int { return a * b },
+		"min": func(a, b int) int {
+			if a < b {
+				return a
+			}
+			return b
+		},
 		"pageRange": func(totalPages, currentPage int) []int {
 			start := currentPage - 2
 			if start < 1 {
