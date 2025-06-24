@@ -13,6 +13,7 @@ type Scanner struct {
 	config          *Config
 	db              *Database
 	bettercap       *Bettercap
+	probeCollector  *ProbeCollector
 	whitelistBSSIDs map[string]bool
 	globalTargets   map[string]*Target
 	targetsMutex    sync.RWMutex
@@ -21,10 +22,12 @@ type Scanner struct {
 }
 
 func NewScanner(config *Config, db *Database, bettercap *Bettercap) *Scanner {
+	probeCollector := NewProbeCollector(bettercap, db)
 	return &Scanner{
 		config:          config,
 		db:              db,
 		bettercap:       bettercap,
+		probeCollector:  probeCollector,
 		whitelistBSSIDs: make(map[string]bool),
 		globalTargets:   make(map[string]*Target),
 		scanning:        false,
@@ -76,6 +79,8 @@ func (s *Scanner) StartScanning() error {
 	s.bettercap.RunCommand(fmt.Sprintf("set wifi.interface %s; set wifi.deauth.open false; wifi.recon.channel %s", s.config.Interface, s.GetChannelsForMode()))
 	s.bettercap.RunCommand("wifi.recon on")
 
+	s.probeCollector.Start()
+
 	return nil
 }
 
@@ -83,6 +88,7 @@ func (s *Scanner) StopScanning() {
 	s.scanMutex.Lock()
 	s.bettercap.RunCommand("wifi.recon off")
 	s.scanning = false
+	s.probeCollector.Stop()
 	s.scanMutex.Unlock()
 }
 

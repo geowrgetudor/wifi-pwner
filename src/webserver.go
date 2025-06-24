@@ -21,7 +21,9 @@ func NewWebServer(db *Database) *WebServer {
 
 func (w *WebServer) Start() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", w.handleDashboard)
+	mux.HandleFunc("/", w.handleHomepage)
+	mux.HandleFunc("/aps", w.handleAPs)
+	mux.HandleFunc("/probes", w.handleProbes)
 	mux.HandleFunc("/api/toggle-scanning", w.handleToggleScanning)
 	mux.HandleFunc("/api/toggle-cracking", w.handleToggleCracking)
 	mux.HandleFunc("/api/status", w.handleStatus)
@@ -43,7 +45,14 @@ type DashboardData struct {
 	Statuses    []string
 }
 
-func (w *WebServer) handleDashboard(resp http.ResponseWriter, req *http.Request) {
+type ProbePageData struct {
+	Result   *PaginatedResult
+	Search   string
+	Channel  string
+	Channels []string
+}
+
+func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
 	page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 	if page < 1 {
 		page = 1
@@ -747,4 +756,510 @@ func (w *WebServer) handleDeleteTarget(resp http.ResponseWriter, req *http.Reque
 
 	resp.Header().Set("Content-Type", "application/json")
 	resp.Write([]byte(`{"success": true}`))
+}
+
+func (w *WebServer) handleHomepage(resp http.ResponseWriter, req *http.Request) {
+	tmpl := `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Pwner - Dashboard</title>
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFVElEQVR4nO3dQW7bRhiG4V8JYHjVpmu5q25a94K9ao6Q46Q3yQFylRzAXXfbq6R7QfcCvYGBJi4SfKVMhiJpDvX+L+B1LVMmNf+Z+YdjkzRJYkopPfV9f9/3/X3TNHdN03xqmuZz0zQfm6b50DTNu6Zp3lZV9aaqqldt27781rbtbynrfdu2r/+u/r3frz9TPqLKhyeqlGF/YGzRPj4w6ry5M0FUqZevdNdwJojKQmPb6K7hTBCViqa20V3DmSAqC41to7uGM0FUFhrbRncNZ4KoLDS2je4azgRRWWhsG901nAmistDYNrprOBNEZaGxbXTXcCaIykJj2+iu4UwQlYXGttFdw5kgKguNbaO7hjNBVBYa20Z3DWeCqCw0to3uGs4EUVlobBvdNZwJorLQ2Da6azgTRGWhsW101nAmeBSVhca20V3DmeikqjLn3l9vNputaZoVIsKjhcUqy2Tq7+U9Py0qSJKkTOqm/w1/k9LQ+v8pCdMZO8U83z4OKhRVNP8X/DElYTrj5wRTd4D5sKggSeJMMMdFFU0f58N8WlRZBVFRzOFFFRWEikLd4sOigpRjjO4azgRRWWhsG901nAmistDYNrprOBNEZaGxbXTXcCaIykJj2+iu4UwQlYXGttFdw5kgKguNbaO7hjNBVBYa20Z3DWeCqCw0to3uGs4EUVlobBvdNZwJorLQ2Da6azgTRGWhsW101nAmiBo+N8Y13DWcCaKy0Ng2ums4E0RlobFtdNdwJojKQmPb6K7hTBCVhca20V3DmSAqC41to7uGM0FUFhrbRncNZ4KoLDS2je4azgRRWWhsG901nAmistDYNrprOBNEZaGxbXTXcCaIykJj2+iu4UwQlYXGttFdw5kgKguNbaO7hjNBVBYa20Z3DWeCqCw0to3uGs4EUVlobBvdNZwJorLQ2Da6azgTRGWhsW101nAmiMpGY9voruFMEJWNxrbRXcOZICobY9voruFMEJWNsW3017fKkySptjbgtxnKwWq10l3DmSAqG41to7uGM0FUNhrbRncNZ4KobDS2je4azgRR2WhsG901nAmistHYNrprOBNEZaOxbXTXcCaIykZj2+iu4UwQlY3GttFdw5kgKhuNbaO7hjNBVDYa20Z3DWeCqGw0to3uGs4EUdlobBvdNZwJorLR2Da6azgTRGWjsW101nAmiBo+N8Y13DWcCaKy0dg2ums4E0Rlo7FtdNdwJojKRmPb6K7hTBCVjca20V3DmSAqG41to7uGM0FUNhrbRncNZ4KobDS2je4azgRR2WhsG901nAmistHYNrprOBNEZaOxbXTXcCaIykZj2+iu4TwTRH2vYGya7hrOM0FUJo1toxPBmSAqk8a20YngTBCVSWPb6ERwJojKpLFtdCI4E0Rl0tg2OhGcCaIyaWwbnQjOBFGZNLaNTgRngqhMGttGJ4IzQVQmjW2jE8GZICqTxrbRieBMEJVJY9voRHAmiMqksW10IjgTRGXS2DY6EZwJojJpbBudCM4EUZk0to1OBGeCqEwa20YngjNBVCaNbaMTwZkgKpPGttGJ4EwQlUlj2+hEcCaIyqSxbXQiOBNEZdLYNjoRnAmiMmlsG50IzgRRmTS2jU4EZ4KoTBrbRieCM0FUJo1toxPBmSAqk8a20YngTBCVSWPb6ERwJojKpLFtdCKI+l7B2DS6azjPBFGZNLaNTgRngqhMGttGJ4IzQVQmjW2jE8GZICqTxrbRieBMEJVJY9voRHAmiMqksW10IjgTRGXS2DY6EZwJojJpbBudCM4EUZk0to1OBGeCqEwa20YngjNBVCaNbaMTwZkgKpPGttGJ4EwQlUlj2+hEcCaIyqSxbXQiOBNEZdLYNjoRnAmikqeZx/qTJOkNUX8A7q8XJNfhqpsAAAAASUVORK5CYII=">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+        }
+        .nav-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        .nav-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-card:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        .nav-card:hover:before {
+            left: 100%;
+        }
+        .nav-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .nav-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        .nav-card p {
+            color: #666;
+            line-height: 1.5;
+        }
+        .stats {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .stats h3 {
+            color: white;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .stat-item {
+            text-align: center;
+            color: white;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 WiFi Pwner</h1>
+            <p>Wireless Network Security Testing Dashboard</p>
+        </div>
+        
+        <div class="nav-cards">
+            <a href="/aps" class="nav-card">
+                <h3>📡 Access Points</h3>
+                <p>View and manage discovered wireless access points. Monitor handshake capture progress and security analysis.</p>
+            </a>
+            
+            <a href="/probes" class="nav-card">
+                <h3>🔍 Client Probes</h3>
+                <p>Monitor WiFi client probe requests. See which networks devices are actively searching for.</p>
+            </a>
+        </div>
+        
+        <div class="stats">
+            <h3>📊 System Status</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="scanning-status">⏸️</div>
+                    <div class="stat-label">Scanning Status</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="cracking-status">⏸️</div>
+                    <div class="stat-label">Auto-Crack Status</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update status indicators
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                document.getElementById('scanning-status').textContent = data.scanning ? '🟢' : '⏸️';
+                document.getElementById('cracking-status').textContent = data.cracking ? '🔓' : '⏸️';
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        }
+        
+        // Update status every 5 seconds
+        updateStatus();
+        setInterval(updateStatus, 5000);
+    </script>
+</body>
+</html>
+`
+	resp.Header().Set("Content-Type", "text/html")
+	resp.Write([]byte(tmpl))
+}
+
+func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
+	page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+	if page < 1 {
+		page = 1
+	}
+
+	search := strings.TrimSpace(req.URL.Query().Get("search"))
+	channel := req.URL.Query().Get("channel")
+
+	params := FilterParams{
+		Search:  search,
+		Channel: channel,
+		Page:    page,
+		PerPage: 20,
+	}
+
+	result, err := w.db.GetPaginatedProbes(params)
+	if err != nil {
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	channels, err := w.db.GetUniqueProbeChannels()
+	if err != nil {
+		channels = []string{}
+	}
+
+	data := ProbePageData{
+		Result:   result,
+		Search:   search,
+		Channel:  channel,
+		Channels: channels,
+	}
+
+	tmpl := `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Pwner - Client Probes</title>
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFVElEQVR4nO3dQW7bRhiG4V8JYHjVpmu5q25a94K9ao6Q46Q3yQFylRzAXXfbq6R7QfcCvYGBJi4SfKVMhiJpDvX+L+B1LVMmNf+Z+YdjkzRJYkopPfV9f9/3/X3TNHdN03xqmuZz0zQfm6b50DTNu6Zp3lZV9aaqqldt27781rbtbynrfdu2r/+u/r3frz9TPqLKhyeqlGF/YGzRPj4w6ry5M0FUqZevdNdwJojKQmPb6K7hTBCViqa20V3DmSAqC41to7uGM0FUFhrbRncNZ4KoLDS2je4azgRRWWhsG901nAmistDYNrprOBNEZaGxbXTXcCaIykJj2+iu4UwQlYXGttFdw5kgKguNbaO7hjNBVBYa20Z3DWeCqCw0to3uGs4EUVlobBvdNZwJorLQ2Da6azgTRGWhsW101nAmeBSVhca20V3DmeikqjLn3l9vNputaZoVIsKjhcUqy2Tq7+U9Py0qSJKkTOqm/w1/k9LQ+v8pCdMZO8U83z4OKhRVNP8X/DElYTrj5wRTd4D5sKggSeJMMMdFFU0f58N8WlRZBVFRzOFFFRWEikLd4sOigpRjjO4azgRRWWhsG901nAmistDYNrprOBNEZaGxbXTXcCaIykJj2+iu4UwQlYXGttFdw5kgKguNbaO7hjNBVBYa20Z3DWeCqCw0to3uGs4EUVlobBvdNZwJorLQ2Da6azgTRGWhsW101nAmiBo+N8Y13DWcCaKy0Ng2ums4E0RlobFtdNdwJojKQmPb6K7hTBCVhca20V3DmSAqC41to7uGM0FUFhrbRncNZ4KoLDS2je4azgRRWWhsG901nAmistDYNrprOBNEZaGxbXTXcCaIykJj2+iu4UwQlYXGttFdw5kgKguNbaO7hjNBVBYa20Z3DWeCqCw0to3uGs4EUVlobBvdNZwJorLQ2Da6azgTRGWhsW101nAmiMpGY9voruFMEJWNxrbRXcOZICobY9voruFMEJWNsW3017fKkySptjbgtxnKwWq10l3DmSAqG41to7uGM0FUNhrbRncNZ4KobDS2je4azgRR2WhsG901nAmistHYNrprOBNEZaOxbXTXcCaIykZj2+iu4UwQlY3GttFdw5kgKhuNbaO7hjNBVDYa20Z3DWeCqGw0to3uGs4EUdlobBvdNZwJorLR2Da6azgTRGWjsW101nAmiBo+N8Y13DWcCaKy0dg2ums4E0Rlo7FtdNdwJojKRmPb6K7hTBCVjca20V3DmSAqG41to7uGM0FUNhrbRncNZ4KobDS2je4azgRR2WhsG901nAmistHYNrprOBNEZaOxbXTXcCaIykZj2+iu4TwTRH2vYGya7hrOM0FUJo1toxPBmSAqk8a20YngTBCVSWPb6ERwJojKpLFtdCI4E0Rl0tg2OhGcCaIyaWwbnQjOBFGZNLaNTgRngqhMGttGJ4IzQVQmjW2jE8GZICqTxrbRieBMEJVJY9voRHAmiMqksW10IjgTRGXS2DY6EZwJojJpbBudCM4EUZk0to1OBGeCqEwa20YngjNBVCaNbaMTwZkgKpPGttGJ4EwQlUlj2+hEcCaIyqSxbXQiOBNEZdLYNjoRnAmiMmlsG50IzgRRmTS2jU4EZ4KoTBrbRieCM0FUJo1toxPBmSAqk8a20YngTBCVSWPb6ERwJojKpLFtdCKI+l7B2DS6azjPBFGZNLaNTgRngqhMGttGJ4IzQVQmjW2jE8GZICqTxrbRieBMEJVJY9voRHAmiMqksW10IjgTRGXS2DY6EZwJojJpbBudCM4EUZk0to1OBGeCqEwa20YngjNBVCaNbaMTwZkgKpPGttGJ4EwQlUlj2+hEcCaIyqSxbXQiOBNEZdLYNjoRnAmikqeZx/qTJOkNUX8A7q8XJNfhqpsAAAAASUVORK5CYII=">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .breadcrumb {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .breadcrumb a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+        .breadcrumb a:hover {
+            color: white;
+        }
+        .controls {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .filters {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.9);
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 2rem;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+        .pagination a,
+        .pagination span {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        .pagination a:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        .pagination .current {
+            background: #667eea;
+            font-weight: bold;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+        .empty-state h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        @media (max-width: 768px) {
+            .filters {
+                grid-template-columns: 1fr;
+            }
+            .table-container {
+                overflow-x: auto;
+            }
+            .pagination {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Client Probes</h1>
+        </div>
+        
+        <div class="breadcrumb">
+            <a href="/">🏠 Dashboard</a> → 
+            <a href="/aps">📡 Access Points</a> → 
+            <span style="color: white;">🔍 Client Probes</span>
+        </div>
+
+        <div class="controls">
+            <form method="GET" class="filters">
+                <div class="form-group">
+                    <label for="search">Search ESSID or MAC</label>
+                    <input type="text" id="search" name="search" value="{{.Search}}" placeholder="Enter ESSID or MAC address...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="channel">Channel</label>
+                    <select id="channel" name="channel">
+                        <option value="">All Channels</option>
+                        {{range .Channels}}
+                        <option value="{{.}}" {{if eq . $.Channel}}selected{{end}}>{{.}}</option>
+                        {{end}}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">🔍 Filter</button>
+            </form>
+        </div>
+
+        <div class="table-container">
+            {{if .Result.Targets}}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>📝 ESSID</th>
+                        <th>📱 Client MAC</th>
+                        <th>📶 Signal</th>
+                        <th>📡 Channel</th>
+                        <th>🏭 Vendor</th>
+                        <th>⏰ Last Seen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Result.Targets}}
+                    <tr>
+                        <td><strong>{{.essid}}</strong></td>
+                        <td><code>{{.mac}}</code></td>
+                        <td>{{.signal}} dBm</td>
+                        <td>{{.channel}}</td>
+                        <td>{{.vendor}}</td>
+                        <td>{{.probedAt}}</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+            {{else}}
+            <div class="empty-state">
+                <h3>No probe requests found</h3>
+                <p>No client probe requests match your current filters. Try adjusting your search criteria.</p>
+            </div>
+            {{end}}
+        </div>
+
+        {{if gt .Result.TotalPages 1}}
+        <div class="pagination">
+            {{if gt .Result.Page 1}}
+            <a href="?page={{sub .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}">‹ Previous</a>
+            {{end}}
+            
+            {{range pageRange .Result.TotalPages .Result.Page}}
+            {{if eq . $.Result.Page}}
+            <span class="current">{{.}}</span>
+            {{else}}
+            <a href="?page={{.}}{{if $.Search}}&search={{$.Search}}{{end}}{{if $.Channel}}&channel={{$.Channel}}{{end}}">{{.}}</a>
+            {{end}}
+            {{end}}
+            
+            {{if lt .Result.Page .Result.TotalPages}}
+            <a href="?page={{add .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}">Next ›</a>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+
+    <script>
+        // Auto-refresh every 30 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>
+`
+
+	funcMap := template.FuncMap{
+		"add": func(a, b int) int { return a + b },
+		"sub": func(a, b int) int { return a - b },
+		"pageRange": func(totalPages, currentPage int) []int {
+			start := currentPage - 2
+			if start < 1 {
+				start = 1
+			}
+			end := currentPage + 2
+			if end > totalPages {
+				end = totalPages
+			}
+
+			var pages []int
+			for i := start; i <= end; i++ {
+				pages = append(pages, i)
+			}
+			return pages
+		},
+	}
+
+	t, err := template.New("probes").Funcs(funcMap).Parse(tmpl)
+	if err != nil {
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp.Header().Set("Content-Type", "text/html")
+	t.Execute(resp, data)
 }

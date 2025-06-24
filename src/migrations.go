@@ -19,6 +19,29 @@ var migrations = []Migration{
 			ALTER TABLE scanned ADD COLUMN cracked_password TEXT;
 		`,
 	},
+	{
+		ID:          2,
+		Description: "Rename scanned table to aps",
+		SQL: `
+			ALTER TABLE scanned RENAME TO aps;
+		`,
+	},
+	{
+		ID:          3,
+		Description: "Create probes table",
+		SQL: `
+			CREATE TABLE IF NOT EXISTS probes (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				essid TEXT,
+				mac TEXT,
+				signal INTEGER,
+				channel TEXT,
+				vendor TEXT,
+				probed_at DATETIME,
+				UNIQUE(essid, mac)
+			);
+		`,
+	},
 }
 
 func (d *Database) RunMigrations() error {

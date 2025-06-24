@@ -27,7 +27,7 @@ func main() {
 	var (
 		iface     = flag.String("interface", "", "WiFi interface to use (required)")
 		mode      = flag.String("mode", "2.4", "WiFi mode: 2.4 or 5 (default: 2.4)")
-		clean     = flag.Bool("clean", false, "Clean scanned directory and database")
+		clean     = flag.Bool("clean", false, "Clean everything, start fresh")
 		bApiPort  = flag.String("b-api-port", "8081", "Bettercap API port (default: 8081)")
 		bExpose   = flag.Bool("b-expose", false, "Expose Bettercap API on 0.0.0.0 instead of 127.0.0.1 (default: false)")
 		webui     = flag.Bool("webui", true, "Enable web UI on port 8080 (default: true)")

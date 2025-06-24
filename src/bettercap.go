@@ -45,7 +45,7 @@ func (b *Bettercap) Start() error {
 	}
 
 	evalCmd := fmt.Sprintf(
-		"set api.rest.port %s; set api.rest.address %s; api.rest on; events.stream off; set wifi.handshakes.aggregate false",
+		"set api.rest.port %s; set api.rest.address %s; api.rest on; events.stream on; set wifi.handshakes.aggregate false",
 		b.config.BettercapAPIPort,
 		apiAddress,
 	)
@@ -83,7 +83,7 @@ func (b *Bettercap) RunCommand(command string) (string, error) {
 		return "", err
 	}
 
-	apiURL := fmt.Sprintf(BettercapAPIURL, b.config.BettercapAPIPort)
+	apiURL := fmt.Sprintf(BettercapSessionURL, b.config.BettercapAPIPort)
 	resp, err := client.Post(apiURL, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", err
@@ -109,7 +109,7 @@ func (b *Bettercap) RunCommand(command string) (string, error) {
 func (b *Bettercap) GetSessionData() (*SessionData, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	apiURL := fmt.Sprintf(BettercapAPIURL, b.config.BettercapAPIPort)
+	apiURL := fmt.Sprintf(BettercapSessionURL, b.config.BettercapAPIPort)
 	resp, err := client.Get(apiURL)
 	if err != nil {
 		return nil, err
@@ -126,6 +126,28 @@ func (b *Bettercap) GetSessionData() (*SessionData, error) {
 	}
 
 	return &sessionData, nil
+}
+
+func (b *Bettercap) GetEvents() ([]BettercapEvent, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	apiURL := fmt.Sprintf(BettercapEventsURL, b.config.BettercapAPIPort)
+	resp, err := client.Get(apiURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API returned status: %d", resp.StatusCode)
+	}
+
+	var events []BettercapEvent
+	if err := json.NewDecoder(resp.Body).Decode(&events); err != nil {
+		return nil, err
+	}
+
+	return events, nil
 }
 
 func (b *Bettercap) randomizeMACBeforeStart() {

@@ -66,8 +66,22 @@ type SessionData struct {
 	} `json:"wifi"`
 }
 
+type ProbeData struct {
+	ESSID  string `json:"essid"`
+	MAC    string `json:"mac"`   
+	RSSI   int    `json:"rssi"`
+	Vendor string `json:"vendor"`
+}
+
+type BettercapEvent struct {
+	Tag  string      `json:"tag"`
+	Time string      `json:"time"`
+	Data ProbeData   `json:"data"`
+}
+
 const (
-	DefaultWebPort  = "8080"
-	BettercapAPIURL = "http://127.0.0.1:%s/api/session"
-	RetryDelay      = 5 * time.Minute
+	DefaultWebPort        = "8080"
+	BettercapSessionURL   = "http://127.0.0.1:%s/api/session"
+	BettercapEventsURL    = "http://127.0.0.1:%s/api/events"
+	RetryDelay            = 5 * time.Minute
 )

@@ -20,7 +20,6 @@ func NewDatabase(workingDir string) (*Database, error) {
 		return nil, err
 	}
 
-	// Create the main table with all columns in their final form
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS scanned (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,7 +61,7 @@ func (d *Database) Close() error {
 
 func (d *Database) SaveTarget(target *Target, handshakePath string, status Status) error {
 	_, err := d.db.Exec(`
-		INSERT OR REPLACE INTO scanned 
+		INSERT OR REPLACE INTO aps 
 		(bssid, essid, signal, channel, encryption, handshake_path, status, last_scan) 
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		target.BSSID,
@@ -79,7 +78,7 @@ func (d *Database) SaveTarget(target *Target, handshakePath string, status Statu
 
 func (d *Database) UpdateTargetPassword(bssid string, password string, status Status) error {
 	_, err := d.db.Exec(`
-		UPDATE scanned 
+		UPDATE aps 
 		SET cracked_password = ?, status = ?
 		WHERE bssid = ?`,
 		password,
@@ -92,7 +91,7 @@ func (d *Database) UpdateTargetPassword(bssid string, password string, status St
 func (d *Database) GetTargetsForCracking() ([]map[string]interface{}, error) {
 	query := `
 		SELECT bssid, essid, handshake_path 
-		FROM scanned 
+		FROM aps 
 		WHERE (status = ? OR status = ?) AND handshake_path != ''
 	`
 
@@ -126,7 +125,7 @@ func (d *Database) ShouldSkipTarget(bssid string) (bool, error) {
 	var lastScan sql.NullTime
 
 	err := d.db.QueryRow(
-		"SELECT status, last_scan FROM scanned WHERE bssid = ?",
+		"SELECT status, last_scan FROM aps WHERE bssid = ?",
 		bssid,
 	).Scan(&status, &lastScan)
 
@@ -157,7 +156,7 @@ func (d *Database) ShouldSkipTarget(bssid string) (bool, error) {
 
 func (d *Database) TargetExists(bssid string) (bool, error) {
 	var count int
-	err := d.db.QueryRow("SELECT COUNT(*) FROM scanned WHERE bssid = ?", bssid).Scan(&count)
+	err := d.db.QueryRow("SELECT COUNT(*) FROM aps WHERE bssid = ?", bssid).Scan(&count)
 	if err != nil {
 		return false, err
 	}
@@ -223,7 +222,7 @@ func (d *Database) GetPaginatedTargets(params FilterParams) (*PaginatedResult, e
 	}
 
 	var totalCount int
-	countQuery := "SELECT COUNT(*) FROM scanned WHERE " + whereClause
+	countQuery := "SELECT COUNT(*) FROM aps WHERE " + whereClause
 	err := d.db.QueryRow(countQuery, args...).Scan(&totalCount)
 	if err != nil {
 		return nil, err
@@ -234,7 +233,7 @@ func (d *Database) GetPaginatedTargets(params FilterParams) (*PaginatedResult, e
 	offset := (params.Page - 1) * params.PerPage
 	query := `
 		SELECT bssid, essid, signal, channel, encryption, handshake_path, status, last_scan, cracked_password 
-		FROM scanned 
+		FROM aps 
 		WHERE ` + whereClause + `
 		ORDER BY last_scan DESC
 		LIMIT ? OFFSET ?
@@ -294,7 +293,7 @@ func (d *Database) GetPaginatedTargets(params FilterParams) (*PaginatedResult, e
 }
 
 func (d *Database) GetUniqueEncryptions() ([]string, error) {
-	rows, err := d.db.Query("SELECT DISTINCT encryption FROM scanned WHERE encryption != '' ORDER BY encryption")
+	rows, err := d.db.Query("SELECT DISTINCT encryption FROM aps WHERE encryption != '' ORDER BY encryption")
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +310,7 @@ func (d *Database) GetUniqueEncryptions() ([]string, error) {
 }
 
 func (d *Database) GetUniqueChannels() ([]string, error) {
-	rows, err := d.db.Query("SELECT DISTINCT channel FROM scanned WHERE channel != '' ORDER BY CAST(channel AS INTEGER)")
+	rows, err := d.db.Query("SELECT DISTINCT channel FROM aps WHERE channel != '' ORDER BY CAST(channel AS INTEGER)")
 	if err != nil {
 		return nil, err
 	}
@@ -328,7 +327,7 @@ func (d *Database) GetUniqueChannels() ([]string, error) {
 }
 
 func (d *Database) GetUniqueStatuses() ([]string, error) {
-	rows, err := d.db.Query("SELECT DISTINCT status FROM scanned WHERE status != '' ORDER BY status")
+	rows, err := d.db.Query("SELECT DISTINCT status FROM aps WHERE status != '' ORDER BY status")
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +345,7 @@ func (d *Database) GetUniqueStatuses() ([]string, error) {
 
 func (d *Database) ResetScanningStatus() error {
 	_, err := d.db.Exec(`
-		UPDATE scanned 
+		UPDATE aps 
 		SET status = ? 
 		WHERE status = ?`,
 		string(StatusDiscovered),
@@ -363,7 +362,7 @@ func (d *Database) GetTarget(bssid string) map[string]interface{} {
 
 	err := d.db.QueryRow(`
 		SELECT bssid, essid, channel, signal, encryption, status, handshake_path, last_scan, cracked_password
-		FROM scanned
+		FROM aps
 		WHERE bssid = ?
 	`, bssid).Scan(&b, &essid, &channel, &signal, &encryption, &status, &handshakePath, &lastScan, &crackedPassword)
 
@@ -385,6 +384,111 @@ func (d *Database) GetTarget(bssid string) map[string]interface{} {
 }
 
 func (d *Database) DeleteTarget(bssid string) error {
-	_, err := d.db.Exec("DELETE FROM scanned WHERE bssid = ?", bssid)
+	_, err := d.db.Exec("DELETE FROM aps WHERE bssid = ?", bssid)
 	return err
+}
+
+func (d *Database) SaveProbe(essid, mac string, signal int, channel, vendor string) error {
+	_, err := d.db.Exec(`
+		INSERT OR REPLACE INTO probes 
+		(essid, mac, signal, channel, vendor, probed_at) 
+		VALUES (?, ?, ?, ?, ?, ?)`,
+		essid, mac, signal, channel, vendor, time.Now(),
+	)
+	return err
+}
+
+func (d *Database) GetPaginatedProbes(params FilterParams) (*PaginatedResult, error) {
+	if params.PerPage == 0 {
+		params.PerPage = 20
+	}
+	if params.Page == 0 {
+		params.Page = 1
+	}
+
+	whereClause := "1=1"
+	args := []interface{}{}
+
+	if params.Search != "" {
+		whereClause += " AND (essid LIKE ? OR mac LIKE ?)"
+		searchTerm := "%" + params.Search + "%"
+		args = append(args, searchTerm, searchTerm)
+	}
+	if params.Channel != "" {
+		whereClause += " AND channel = ?"
+		args = append(args, params.Channel)
+	}
+
+	var totalCount int
+	countQuery := "SELECT COUNT(*) FROM probes WHERE " + whereClause
+	err := d.db.QueryRow(countQuery, args...).Scan(&totalCount)
+	if err != nil {
+		return nil, err
+	}
+
+	totalPages := (totalCount + params.PerPage - 1) / params.PerPage
+
+	offset := (params.Page - 1) * params.PerPage
+	query := `
+		SELECT essid, mac, signal, channel, vendor, probed_at 
+		FROM probes 
+		WHERE ` + whereClause + `
+		ORDER BY probed_at DESC
+		LIMIT ? OFFSET ?
+	`
+	args = append(args, params.PerPage, offset)
+
+	rows, err := d.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var probes []map[string]interface{}
+	for rows.Next() {
+		var essid, mac, channel, vendor string
+		var signal int
+		var probedAt time.Time
+
+		err := rows.Scan(&essid, &mac, &signal, &channel, &vendor, &probedAt)
+		if err != nil {
+			continue
+		}
+
+		probe := map[string]interface{}{
+			"essid":    essid,
+			"mac":      mac,
+			"signal":   signal,
+			"channel":  channel,
+			"vendor":   vendor,
+			"probedAt": probedAt.Format("2006-01-02 15:04:05"),
+		}
+
+		probes = append(probes, probe)
+	}
+
+	return &PaginatedResult{
+		Targets:    probes,
+		TotalCount: totalCount,
+		Page:       params.Page,
+		PerPage:    params.PerPage,
+		TotalPages: totalPages,
+	}, nil
+}
+
+func (d *Database) GetUniqueProbeChannels() ([]string, error) {
+	rows, err := d.db.Query("SELECT DISTINCT channel FROM probes WHERE channel != '' ORDER BY CAST(channel AS INTEGER)")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var channels []string
+	for rows.Next() {
+		var channel string
+		if err := rows.Scan(&channel); err == nil {
+			channels = append(channels, channel)
+		}
+	}
+	return channels, nil
 }
