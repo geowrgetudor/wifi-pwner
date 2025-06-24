@@ -64,6 +64,7 @@ A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capt
 - **Clean Storage**: Only successful captures are saved
 - **Automatic Password Cracking**: Built-in WPA2 handshake cracking using aircrack-ng
 - **Wordlist Support**: Download and use popular wordlists like rockyou.txt
+- **Probe Request Monitoring**: Automatic capture of client probe requests for device intelligence
 
 Upcoming:
 
@@ -258,6 +259,7 @@ When enabled (default), access the web dashboard at `http://localhost:8080` to v
 - Signal strength
 - Cracked passwords with copy-to-clipboard functionality
 - Handshake file paths with copy-to-clipboard functionality
+- Client probe requests - monitor device search activity
 
 ### Runtime Files
 
