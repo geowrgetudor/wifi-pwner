@@ -113,6 +113,11 @@ func (w *WebServer) loadTemplates() {
 	if err != nil {
 		log.Fatalf("Error loading embedded templates: %v", err)
 	}
+	
+	// Debug: List all loaded templates
+	for _, t := range w.templates.Templates() {
+		log.Printf("[DEBUG] Loaded template: %s", t.Name())
+	}
 }
 
 
@@ -138,9 +143,13 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
 
 	result, err := w.db.GetPaginatedTargets(params)
 	if err != nil {
+		log.Printf("[ERROR] Failed to get paginated targets: %v", err)
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	
+	log.Printf("[DEBUG] APs result: TotalCount=%d, Page=%d, TotalPages=%d, TargetsCount=%d", 
+		result.TotalCount, result.Page, result.TotalPages, len(result.Targets))
 
 	encryptions, _ := w.db.GetUniqueEncryptions()
 	channels, _ := w.db.GetUniqueChannels()
@@ -163,8 +172,10 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	resp.Header().Set("Content-Type", "text/html")
-	err = w.templates.ExecuteTemplate(resp, "base.html", templateData)
+	// Execute the specific template which includes base.html
+	err = w.templates.ExecuteTemplate(resp, "aps.html", templateData)
 	if err != nil {
+		log.Printf("[ERROR] APs template execution error: %v", err)
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -306,8 +317,10 @@ func (w *WebServer) handleHomepage(resp http.ResponseWriter, req *http.Request) 
 	}
 
 	resp.Header().Set("Content-Type", "text/html")
-	err := w.templates.ExecuteTemplate(resp, "base.html", templateData)
+	// Execute the specific template which includes base.html
+	err := w.templates.ExecuteTemplate(resp, "homepage.html", templateData)
 	if err != nil {
+		log.Printf("[ERROR] Homepage template execution error: %v", err)
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -344,8 +357,10 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	resp.Header().Set("Content-Type", "text/html")
-	err = w.templates.ExecuteTemplate(resp, "base.html", templateData)
+	// Execute the specific template which includes base.html
+	err = w.templates.ExecuteTemplate(resp, "probes.html", templateData)
 	if err != nil {
+		log.Printf("[ERROR] Probes template execution error: %v", err)
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
