@@ -358,7 +358,7 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
 
 	resp.Header().Set("Content-Type", "text/html")
 	// Execute the base template
-	err = w.templates.ExecuteTemplate(resp, "probes.html", templateData)
+	err = w.templates.ExecuteTemplate(resp, "base.html", templateData)
 	if err != nil {
 		log.Printf("[ERROR] Probes template execution error: %v", err)
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
