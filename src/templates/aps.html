@@ -63,36 +63,36 @@
             <tbody>
                 {{if and .ApsData .ApsData.Result}}{{range .ApsData.Result.Targets}}
                 <tr class="hover:bg-purple-50 transition-colors">
-                    <td class="px-4 py-3 border-b border-gray-100">{{.ESSID}}</td>
-                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.BSSID}}</td>
-                    <td class="px-4 py-3 border-b border-gray-100">{{.Channel}}</td>
-                    <td class="px-4 py-3 border-b border-gray-100">{{.Encryption}}</td>
-                    <td class="px-4 py-3 border-b border-gray-100 text-gray-600">{{.Signal}} dBm</td>
+                    <td class="px-4 py-3 border-b border-gray-100">{{.essid}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.bssid}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100">{{.channel}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100">{{.encryption}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100 text-gray-600">{{.signal}} dBm</td>
                     <td class="px-4 py-3 border-b border-gray-100">
                         {{if eq .Status "captured"}}
-                            <span class="text-green-600 font-semibold">{{.Status}}</span>
+                            <span class="text-green-600 font-semibold">{{.status}}</span>
                         {{else if eq .Status "cracking"}}
-                            <span class="text-yellow-600 font-semibold">{{.Status}}</span>
+                            <span class="text-yellow-600 font-semibold">{{.status}}</span>
                         {{else if eq .Status "failed"}}
-                            <span class="text-red-600 font-semibold">{{.Status}}</span>
+                            <span class="text-red-600 font-semibold">{{.status}}</span>
                         {{else}}
-                            <span class="text-gray-600 font-semibold">{{.Status}}</span>
+                            <span class="text-gray-600 font-semibold">{{.status}}</span>
                         {{end}}
                     </td>
                     <td class="px-4 py-3 border-b border-gray-100">
                         <div class="flex gap-2">
                             {{if eq .Status "captured"}}
-                                <a href="/api/download-handshake?bssid={{.BSSID}}" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded transition-colors">Download</a>
+                                <a href="/api/download-handshake?bssid={{.bssid}}" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded transition-colors">Download</a>
                             {{else if eq .Status "cracking"}}
                                 <span class="px-3 py-1 bg-yellow-500 text-white text-sm font-medium rounded">Cracking...</span>
                             {{else}}
                                 <form method="POST" action="/api/toggle-cracking" class="inline">
-                                    <input type="hidden" name="bssid" value="{{.BSSID}}">
+                                    <input type="hidden" name="bssid" value="{{.bssid}}">
                                     <button type="submit" class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded transition-colors">Crack</button>
                                 </form>
                             {{end}}
                             <form method="POST" action="/api/delete-target" class="inline">
-                                <input type="hidden" name="bssid" value="{{.BSSID}}">
+                                <input type="hidden" name="bssid" value="{{.bssid}}">
                                 <button type="submit" class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded transition-colors" onclick="return confirm('Delete this target?')">Delete</button>
                             </form>
                         </div>

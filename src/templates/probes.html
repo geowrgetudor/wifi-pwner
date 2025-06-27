@@ -27,30 +27,28 @@
                     <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Client MAC</th>
                     <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Probed ESSID</th>
                     <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Signal Strength</th>
-                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">First Seen</th>
-                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Last Seen</th>
-                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Count</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Vendor</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Probed At</th>
                 </tr>
             </thead>
             <tbody>
                 {{if and .ProbePageData .ProbePageData.Result}}{{range .ProbePageData.Result.Targets}}
                 <tr class="hover:bg-purple-50 transition-colors">
-                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.ClientMAC}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.mac}}</td>
                     <td class="px-4 py-3 border-b border-gray-100">
-                        {{if .ESSID}}
-                            {{.ESSID}}
+                        {{if .essid}}
+                            {{.essid}}
                         {{else}}
                             <em class="text-gray-500 italic">Hidden/Broadcast</em>
                         {{end}}
                     </td>
-                    <td class="px-4 py-3 border-b border-gray-100 text-gray-600">{{.Signal}} dBm</td>
-                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm text-gray-600">{{.FirstSeen.Format "15:04:05"}}</td>
-                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm text-gray-600">{{.LastSeen.Format "15:04:05"}}</td>
-                    <td class="px-4 py-3 border-b border-gray-100 text-center font-semibold">{{.Count}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100 text-gray-600">{{.signal}} dBm</td>
+                    <td class="px-4 py-3 border-b border-gray-100 text-gray-600">{{.vendor}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm text-gray-600">{{.probedAt}}</td>
                 </tr>
                 {{else}}
                 <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">No probe requests found</td>
+                    <td colspan="5" class="px-4 py-8 text-center text-gray-500 italic">No probe requests found</td>
                 </tr>
                 {{end}}{{end}}
             </tbody>
