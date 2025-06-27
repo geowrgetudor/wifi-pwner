@@ -1,0 +1,93 @@
+{{define "content"}}
+<div class="p-6">
+    <!-- Navigation Tabs -->
+    <div class="flex justify-center mb-6 border-b border-gray-200 pb-4">
+        <a href="/aps" class="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-50 font-semibold rounded-lg mr-2 transition-colors">APs</a>
+        <a href="/probes" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg">Probes</a>
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+        <form method="GET" class="flex flex-wrap gap-4 items-center">
+            <div class="flex-1 min-w-[300px]">
+                <input type="text" name="search" placeholder="Search ESSID or client MAC..." value="{{.Search}}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            </div>
+            
+            <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200 transform hover:-translate-y-0.5 whitespace-nowrap">Search</button>
+            <a href="/probes" class="px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors whitespace-nowrap">Clear</a>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
+        <table class="w-full border-collapse bg-white">
+            <thead>
+                <tr class="bg-gray-50">
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Client MAC</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Probed ESSID</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Signal Strength</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">First Seen</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Last Seen</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Result.Probes}}
+                <tr class="hover:bg-purple-50 transition-colors">
+                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.ClientMAC}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100">
+                        {{if .ESSID}}
+                            {{.ESSID}}
+                        {{else}}
+                            <em class="text-gray-500 italic">Hidden/Broadcast</em>
+                        {{end}}
+                    </td>
+                    <td class="px-4 py-3 border-b border-gray-100 text-gray-600">{{.Signal}} dBm</td>
+                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm text-gray-600">{{.FirstSeen.Format "15:04:05"}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm text-gray-600">{{.LastSeen.Format "15:04:05"}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100 text-center font-semibold">{{.Count}}</td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">No probe requests found</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {{if gt .Result.TotalPages 1}}
+    <div class="flex justify-center items-center mt-6 gap-2 flex-wrap">
+        {{if gt .Result.Page 1}}
+            <a href="?page=1{{if .Search}}&search={{.Search}}{{end}}" 
+               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">First</a>
+            <a href="?page={{sub .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}" 
+               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Previous</a>
+        {{end}}
+        
+        {{range pageRange .Result.TotalPages .Result.Page}}
+            {{if eq . $.Result.Page}}
+                <span class="px-3 py-2 bg-purple-600 text-white border border-purple-600 rounded-lg">{{.}}</span>
+            {{else}}
+                <a href="?page={{.}}{{if $.Search}}&search={{$.Search}}{{end}}" 
+                   class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">{{.}}</a>
+            {{end}}
+        {{end}}
+        
+        {{if lt .Result.Page .Result.TotalPages}}
+            <a href="?page={{add .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}" 
+               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Next</a>
+            <a href="?page={{.Result.TotalPages}}{{if .Search}}&search={{.Search}}{{end}}" 
+               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Last</a>
+        {{end}}
+    </div>
+    {{end}}
+
+    <!-- Info Panel -->
+    <div class="mt-4 text-center p-4 bg-gray-50 rounded-lg text-gray-600">
+        <p>Total Probes: {{.Result.Total}} | Page {{.Result.Page}} of {{.Result.TotalPages}}</p>
+    </div>
+</div>
+{{end}}

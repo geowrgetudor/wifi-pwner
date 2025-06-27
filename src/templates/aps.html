@@ -1,0 +1,143 @@
+{{define "content"}}
+<div class="p-6">
+    <!-- Navigation Tabs -->
+    <div class="flex justify-center mb-6 border-b border-gray-200 pb-4">
+        <a href="/aps" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg mr-2">APs</a>
+        <a href="/probes" class="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-50 font-semibold rounded-lg transition-colors">Probes</a>
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+        <form method="GET" class="flex flex-wrap gap-4 items-center">
+            <div class="flex-1 min-w-[200px]">
+                <input type="text" name="search" placeholder="Search ESSID..." value="{{.Search}}" 
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            </div>
+            
+            <div class="flex-1 min-w-[200px]">
+                <select name="encryption" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <option value="">All Encryptions</option>
+                    {{range .Encryptions}}
+                        <option value="{{.}}" {{if eq . $.Encryption}}selected{{end}}>{{.}}</option>
+                    {{end}}
+                </select>
+            </div>
+            
+            <div class="flex-1 min-w-[200px]">
+                <select name="channel" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <option value="">All Channels</option>
+                    {{range .Channels}}
+                        <option value="{{.}}" {{if eq . $.Channel}}selected{{end}}>{{.}}</option>
+                    {{end}}
+                </select>
+            </div>
+            
+            <div class="flex-1 min-w-[200px]">
+                <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <option value="">All Statuses</option>
+                    {{range .Statuses}}
+                        <option value="{{.}}" {{if eq . $.Status}}selected{{end}}>{{.}}</option>
+                    {{end}}
+                </select>
+            </div>
+            
+            <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200 transform hover:-translate-y-0.5 whitespace-nowrap">Filter</button>
+            <a href="/aps" class="px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors whitespace-nowrap">Clear</a>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
+        <table class="w-full border-collapse bg-white">
+            <thead>
+                <tr class="bg-gray-50">
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">ESSID</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">BSSID</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Channel</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Encryption</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Signal</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Status</th>
+                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Result.APs}}
+                <tr class="hover:bg-purple-50 transition-colors">
+                    <td class="px-4 py-3 border-b border-gray-100">{{.ESSID}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.BSSID}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100">{{.Channel}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100">{{.Encryption}}</td>
+                    <td class="px-4 py-3 border-b border-gray-100 text-gray-600">{{.Signal}} dBm</td>
+                    <td class="px-4 py-3 border-b border-gray-100">
+                        {{if eq .Status "captured"}}
+                            <span class="text-green-600 font-semibold">{{.Status}}</span>
+                        {{else if eq .Status "cracking"}}
+                            <span class="text-yellow-600 font-semibold">{{.Status}}</span>
+                        {{else if eq .Status "failed"}}
+                            <span class="text-red-600 font-semibold">{{.Status}}</span>
+                        {{else}}
+                            <span class="text-gray-600 font-semibold">{{.Status}}</span>
+                        {{end}}
+                    </td>
+                    <td class="px-4 py-3 border-b border-gray-100">
+                        <div class="flex gap-2">
+                            {{if eq .Status "captured"}}
+                                <a href="/api/download-handshake?bssid={{.BSSID}}" class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded transition-colors">Download</a>
+                            {{else if eq .Status "cracking"}}
+                                <span class="px-3 py-1 bg-yellow-500 text-white text-sm font-medium rounded">Cracking...</span>
+                            {{else}}
+                                <form method="POST" action="/api/toggle-cracking" class="inline">
+                                    <input type="hidden" name="bssid" value="{{.BSSID}}">
+                                    <button type="submit" class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded transition-colors">Crack</button>
+                                </form>
+                            {{end}}
+                            <form method="POST" action="/api/delete-target" class="inline">
+                                <input type="hidden" name="bssid" value="{{.BSSID}}">
+                                <button type="submit" class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded transition-colors" onclick="return confirm('Delete this target?')">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {{else}}
+                <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-500 italic">No access points found</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {{if gt .Result.TotalPages 1}}
+    <div class="flex justify-center items-center mt-6 gap-2 flex-wrap">
+        {{if gt .Result.Page 1}}
+            <a href="?page=1{{if .Search}}&search={{.Search}}{{end}}{{if .Encryption}}&encryption={{.Encryption}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}{{if .Status}}&status={{.Status}}{{end}}" 
+               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">First</a>
+            <a href="?page={{sub .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Encryption}}&encryption={{.Encryption}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}{{if .Status}}&status={{.Status}}{{end}}" 
+               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Previous</a>
+        {{end}}
+        
+        {{range pageRange .Result.TotalPages .Result.Page}}
+            {{if eq . $.Result.Page}}
+                <span class="px-3 py-2 bg-purple-600 text-white border border-purple-600 rounded-lg">{{.}}</span>
+            {{else}}
+                <a href="?page={{.}}{{if $.Search}}&search={{$.Search}}{{end}}{{if $.Encryption}}&encryption={{$.Encryption}}{{end}}{{if $.Channel}}&channel={{$.Channel}}{{end}}{{if $.Status}}&status={{$.Status}}{{end}}" 
+                   class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">{{.}}</a>
+            {{end}}
+        {{end}}
+        
+        {{if lt .Result.Page .Result.TotalPages}}
+            <a href="?page={{add .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Encryption}}&encryption={{.Encryption}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}{{if .Status}}&status={{.Status}}{{end}}" 
+               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Next</a>
+            <a href="?page={{.Result.TotalPages}}{{if .Search}}&search={{.Search}}{{end}}{{if .Encryption}}&encryption={{.Encryption}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}{{if .Status}}&status={{.Status}}{{end}}" 
+               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Last</a>
+        {{end}}
+    </div>
+    {{end}}
+
+    <!-- Info Panel -->
+    <div class="mt-4 text-center p-4 bg-gray-50 rounded-lg text-gray-600">
+        <p>Total APs: {{.Result.Total}} | Page {{.Result.Page}} of {{.Result.TotalPages}}</p>
+    </div>
+</div>
+{{end}}
