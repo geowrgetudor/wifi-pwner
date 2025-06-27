@@ -49,7 +49,15 @@
         </div>
         {{end}}
         <!-- Dynamic content here for each page -->
-        {{block "content" .}}{{end}}
+        {{if eq .Title "Dashboard"}}
+          {{template "homepage-content" .}}
+        {{else if eq .Title "APs"}}
+          {{template "aps-content" .}}
+        {{else if eq .Title "Probes"}}
+          {{template "probes-content" .}}
+        {{else}}
+          {{block "content" .}}{{end}}
+        {{end}}
       </div>
       <footer class="mt-8 py-6 border-t border-gray-200">
         <div class="text-center space-y-2">
@@ -85,6 +93,10 @@
         </div>
       </footer>
     </div>
-    {{block "scripts" .}}{{end}}
+    {{if eq .Title "Dashboard"}}
+      {{template "homepage-scripts" .}}
+    {{else}}
+      {{block "scripts" .}}{{end}}
+    {{end}}
   </body>
 </html>

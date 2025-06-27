@@ -172,8 +172,8 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	resp.Header().Set("Content-Type", "text/html")
-	// Execute the specific template which includes base.html
-	err = w.templates.ExecuteTemplate(resp, "aps.html", templateData)
+	// Execute the base template
+	err = w.templates.ExecuteTemplate(resp, "base.html", templateData)
 	if err != nil {
 		log.Printf("[ERROR] APs template execution error: %v", err)
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
@@ -317,8 +317,8 @@ func (w *WebServer) handleHomepage(resp http.ResponseWriter, req *http.Request) 
 	}
 
 	resp.Header().Set("Content-Type", "text/html")
-	// Execute the specific template which includes base.html
-	err := w.templates.ExecuteTemplate(resp, "homepage.html", templateData)
+	// Execute the base template
+	err := w.templates.ExecuteTemplate(resp, "base.html", templateData)
 	if err != nil {
 		log.Printf("[ERROR] Homepage template execution error: %v", err)
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
@@ -357,7 +357,7 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	resp.Header().Set("Content-Type", "text/html")
-	// Execute the specific template which includes base.html
+	// Execute the base template
 	err = w.templates.ExecuteTemplate(resp, "probes.html", templateData)
 	if err != nil {
 		log.Printf("[ERROR] Probes template execution error: %v", err)
