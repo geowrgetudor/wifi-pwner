@@ -1,66 +1,110 @@
 {{define "content"}}
 <div class="p-6">
-    <div class="text-center mb-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">WiFi Security Dashboard</h2>
-        <p class="text-gray-600">Monitor and manage WiFi penetration testing operations</p>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8" id="status-panel">
-        <div class="flex items-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div class="text-4xl mr-4" id="scanning-icon">📡</div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Scanning</h3>
-                <p id="scanning-status" class="text-sm font-medium">Loading...</p>
-            </div>
-        </div>
-        
-        <div class="flex items-center bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <div class="text-4xl mr-4" id="cracking-icon">🔑</div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-800">Cracking</h3>
-                <p id="cracking-status" class="text-sm font-medium">Loading...</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center">
-            <div class="text-6xl mb-4">📶</div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Access Points</h3>
-            <p class="text-gray-600 mb-6">View and manage discovered WiFi access points</p>
-            <a href="/aps" class="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200 transform hover:-translate-y-0.5">View APs</a>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center">
-            <div class="text-6xl mb-4">📱</div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Client Probes</h3>
-            <p class="text-gray-600 mb-6">Monitor WiFi client probe requests</p>
-            <a href="/probes" class="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200 transform hover:-translate-y-0.5">View Probes</a>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center">
-            <div class="text-6xl mb-4">⚙️</div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Control Panel</h3>
-            <p class="text-gray-600 mb-6">Start/stop scanning and cracking operations</p>
-            <div class="space-y-2">
-                <button id="toggle-scanning" class="w-full px-4 py-2 border-2 border-blue-500 text-blue-500 font-semibold rounded-lg hover:bg-blue-500 hover:text-white transition-all duration-200">Toggle Scanning</button>
-                <button id="toggle-cracking" class="w-full px-4 py-2 border-2 border-blue-500 text-blue-500 font-semibold rounded-lg hover:bg-blue-500 hover:text-white transition-all duration-200">Toggle Cracking</button>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center">
-            <div class="text-6xl mb-4">📊</div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Statistics</h3>
-            <p class="text-gray-600 mb-6">View operational statistics and metrics</p>
-            <div class="text-gray-700 space-y-1">
-                <p><span id="total-aps" class="font-bold text-gray-900">Loading...</span> Total APs</p>
-                <p><span id="total-probes" class="font-bold text-gray-900">Loading...</span> Total Probes</p>
-            </div>
-        </div>
-    </div>
-</div>
-{{end}}
+  <div class="text-center mb-8">
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">
+      WiFi Security Dashboard
+    </h2>
+    <p class="text-gray-600">
+      Monitor and manage WiFi penetration testing operations
+    </p>
+  </div>
 
-{{define "scripts"}}
-<script src="/static/homepage.js"></script>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8" id="status-panel">
+    <div
+      class="flex items-center bg-gray-50 rounded-lg p-4 border border-gray-200"
+    >
+      <div class="text-4xl mr-4" id="scanning-icon">📡</div>
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800">Scanning</h3>
+        <p id="scanning-status" class="text-sm font-medium">Loading...</p>
+      </div>
+    </div>
+
+    <div
+      class="flex items-center bg-gray-50 rounded-lg p-4 border border-gray-200"
+    >
+      <div class="text-4xl mr-4" id="cracking-icon">🔑</div>
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800">Cracking</h3>
+        <p id="cracking-status" class="text-sm font-medium">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div
+      class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center"
+    >
+      <div class="text-6xl mb-4">📶</div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">Access Points</h3>
+      <p class="text-gray-600 mb-6">
+        View and manage discovered WiFi access points
+      </p>
+      <a
+        href="/aps"
+        class="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200 transform hover:-translate-y-0.5"
+        >View APs</a
+      >
+    </div>
+
+    <div
+      class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center"
+    >
+      <div class="text-6xl mb-4">📱</div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">Client Probes</h3>
+      <p class="text-gray-600 mb-6">Monitor WiFi client probe requests</p>
+      <a
+        href="/probes"
+        class="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200 transform hover:-translate-y-0.5"
+        >View Probes</a
+      >
+    </div>
+
+    <div
+      class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center"
+    >
+      <div class="text-6xl mb-4">⚙️</div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">Control Panel</h3>
+      <p class="text-gray-600 mb-6">
+        Start/stop scanning and cracking operations
+      </p>
+      <div class="space-y-2">
+        <button
+          id="toggle-scanning"
+          class="w-full px-4 py-2 border-2 border-blue-500 text-blue-500 font-semibold rounded-lg hover:bg-blue-500 hover:text-white transition-all duration-200"
+        >
+          Toggle Scanning
+        </button>
+        <button
+          id="toggle-cracking"
+          class="w-full px-4 py-2 border-2 border-blue-500 text-blue-500 font-semibold rounded-lg hover:bg-blue-500 hover:text-white transition-all duration-200"
+        >
+          Toggle Cracking
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center"
+    >
+      <div class="text-6xl mb-4">📊</div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">Statistics</h3>
+      <p class="text-gray-600 mb-6">View operational statistics and metrics</p>
+      <div class="text-gray-700 space-y-1">
+        <p>
+          <span id="total-aps" class="font-bold text-gray-900">Loading...</span>
+          Total APs
+        </p>
+        <p>
+          <span id="total-probes" class="font-bold text-gray-900"
+            >Loading...</span
+          >
+          Total Probes
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}} {{define "scripts"}}
+<script src="/static/index.js"></script>
 {{end}}
