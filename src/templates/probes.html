@@ -10,7 +10,7 @@
     <div class="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
         <form method="GET" class="flex flex-wrap gap-4 items-center">
             <div class="flex-1 min-w-[300px]">
-                <input type="text" name="search" placeholder="Search ESSID or client MAC..." value="{{.ProbePageData.Search}}" 
+                <input type="text" name="search" placeholder="Search ESSID or client MAC..." value="{{if .ProbePageData}}{{.ProbePageData.Search}}{{end}}" 
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
             </div>
             
@@ -33,7 +33,7 @@
                 </tr>
             </thead>
             <tbody>
-                {{range .ProbePageData.Result.Targets}}
+                {{if and .ProbePageData .ProbePageData.Result}}{{range .ProbePageData.Result.Targets}}
                 <tr class="hover:bg-purple-50 transition-colors">
                     <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.ClientMAC}}</td>
                     <td class="px-4 py-3 border-b border-gray-100">
@@ -52,13 +52,13 @@
                 <tr>
                     <td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">No probe requests found</td>
                 </tr>
-                {{end}}
+                {{end}}{{end}}
             </tbody>
         </table>
     </div>
 
     <!-- Pagination -->
-    {{if gt .ProbePageData.Result.TotalPages 1}}
+    {{if and .ProbePageData .ProbePageData.Result (gt .ProbePageData.Result.TotalPages 1)}}
     <div class="flex justify-center items-center mt-6 gap-2 flex-wrap">
         {{if gt .ProbePageData.Result.Page 1}}
             <a href="?page=1{{if .ProbePageData.Search}}&search={{.ProbePageData.Search}}{{end}}" 
@@ -86,8 +86,10 @@
     {{end}}
 
     <!-- Info Panel -->
+    {{if and .ProbePageData .ProbePageData.Result}}
     <div class="mt-4 text-center p-4 bg-gray-50 rounded-lg text-gray-600">
         <p>Total Probes: {{.ProbePageData.Result.TotalCount}} | Page {{.ProbePageData.Result.Page}} of {{.ProbePageData.Result.TotalPages}}</p>
     </div>
+    {{end}}
 </div>
 {{end}}

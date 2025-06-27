@@ -10,34 +10,34 @@
     <div class="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
         <form method="GET" class="flex flex-wrap gap-4 items-center">
             <div class="flex-1 min-w-[200px]">
-                <input type="text" name="search" placeholder="Search ESSID..." value="{{.ApsData.Search}}" 
+                <input type="text" name="search" placeholder="Search ESSID..." value="{{if .ApsData}}{{.ApsData.Search}}{{end}}" 
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
             </div>
             
             <div class="flex-1 min-w-[200px]">
                 <select name="encryption" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <option value="">All Encryptions</option>
-                    {{range .ApsData.Encryptions}}
+                    {{if .ApsData}}{{range .ApsData.Encryptions}}
                         <option value="{{.}}" {{if eq . $.ApsData.Encryption}}selected{{end}}>{{.}}</option>
-                    {{end}}
+                    {{end}}{{end}}
                 </select>
             </div>
             
             <div class="flex-1 min-w-[200px]">
                 <select name="channel" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <option value="">All Channels</option>
-                    {{range .ApsData.Channels}}
+                    {{if .ApsData}}{{range .ApsData.Channels}}
                         <option value="{{.}}" {{if eq . $.ApsData.Channel}}selected{{end}}>{{.}}</option>
-                    {{end}}
+                    {{end}}{{end}}
                 </select>
             </div>
             
             <div class="flex-1 min-w-[200px]">
                 <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <option value="">All Statuses</option>
-                    {{range .ApsData.Statuses}}
+                    {{if .ApsData}}{{range .ApsData.Statuses}}
                         <option value="{{.}}" {{if eq . $.ApsData.Status}}selected{{end}}>{{.}}</option>
-                    {{end}}
+                    {{end}}{{end}}
                 </select>
             </div>
             
@@ -61,7 +61,7 @@
                 </tr>
             </thead>
             <tbody>
-                {{range .ApsData.Result.Targets}}
+                {{if and .ApsData .ApsData.Result}}{{range .ApsData.Result.Targets}}
                 <tr class="hover:bg-purple-50 transition-colors">
                     <td class="px-4 py-3 border-b border-gray-100">{{.ESSID}}</td>
                     <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.BSSID}}</td>
@@ -102,13 +102,13 @@
                 <tr>
                     <td colspan="7" class="px-4 py-8 text-center text-gray-500 italic">No access points found</td>
                 </tr>
-                {{end}}
+                {{end}}{{end}}
             </tbody>
         </table>
     </div>
 
     <!-- Pagination -->
-    {{if gt .ApsData.Result.TotalPages 1}}
+    {{if and .ApsData .ApsData.Result (gt .ApsData.Result.TotalPages 1)}}
     <div class="flex justify-center items-center mt-6 gap-2 flex-wrap">
         {{if gt .ApsData.Result.Page 1}}
             <a href="?page=1{{if .ApsData.Search}}&search={{.ApsData.Search}}{{end}}{{if .ApsData.Encryption}}&encryption={{.ApsData.Encryption}}{{end}}{{if .ApsData.Channel}}&channel={{.ApsData.Channel}}{{end}}{{if .ApsData.Status}}&status={{.ApsData.Status}}{{end}}" 
@@ -136,8 +136,10 @@
     {{end}}
 
     <!-- Info Panel -->
+    {{if and .ApsData .ApsData.Result}}
     <div class="mt-4 text-center p-4 bg-gray-50 rounded-lg text-gray-600">
         <p>Total APs: {{.ApsData.Result.TotalCount}} | Page {{.ApsData.Result.Page}} of {{.ApsData.Result.TotalPages}}</p>
     </div>
+    {{end}}
 </div>
 {{end}}

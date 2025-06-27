@@ -70,9 +70,9 @@ type ProbePageData struct {
 }
 
 type TemplateData struct {
-	Title string
-	ApsData
-	ProbePageData
+	Title         string
+	ApsData       *ApsData
+	ProbePageData *ProbePageData
 }
 
 func (w *WebServer) loadTemplates() {
@@ -159,7 +159,7 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
 
 	templateData := TemplateData{
 		Title:   "APs",
-		ApsData: data,
+		ApsData: &data,
 	}
 
 	resp.Header().Set("Content-Type", "text/html")
@@ -340,7 +340,7 @@ func (w *WebServer) handleProbes(resp http.ResponseWriter, req *http.Request) {
 
 	templateData := TemplateData{
 		Title:         "Probes",
-		ProbePageData: data,
+		ProbePageData: &data,
 	}
 
 	resp.Header().Set("Content-Type", "text/html")
