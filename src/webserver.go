@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-//go:embed src/templates/*
+//go:embed templates/*
 var templateFS embed.FS
 
 //go:embed static/*
@@ -109,7 +109,7 @@ func (w *WebServer) loadTemplates() {
 	}
 
 	var err error
-	w.templates, err = template.New("").Funcs(funcMap).ParseFS(templateFS, "src/templates/*.html")
+	w.templates, err = template.New("").Funcs(funcMap).ParseFS(templateFS, "templates/*.html")
 	if err != nil {
 		log.Fatalf("Error loading embedded templates: %v", err)
 	}
