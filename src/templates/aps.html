@@ -10,15 +10,15 @@
     <div class="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
         <form method="GET" class="flex flex-wrap gap-4 items-center">
             <div class="flex-1 min-w-[200px]">
-                <input type="text" name="search" placeholder="Search ESSID..." value="{{.Search}}" 
+                <input type="text" name="search" placeholder="Search ESSID..." value="{{.ApsData.Search}}" 
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
             </div>
             
             <div class="flex-1 min-w-[200px]">
                 <select name="encryption" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <option value="">All Encryptions</option>
-                    {{range .Encryptions}}
-                        <option value="{{.}}" {{if eq . $.Encryption}}selected{{end}}>{{.}}</option>
+                    {{range .ApsData.Encryptions}}
+                        <option value="{{.}}" {{if eq . $.ApsData.Encryption}}selected{{end}}>{{.}}</option>
                     {{end}}
                 </select>
             </div>
@@ -26,8 +26,8 @@
             <div class="flex-1 min-w-[200px]">
                 <select name="channel" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <option value="">All Channels</option>
-                    {{range .Channels}}
-                        <option value="{{.}}" {{if eq . $.Channel}}selected{{end}}>{{.}}</option>
+                    {{range .ApsData.Channels}}
+                        <option value="{{.}}" {{if eq . $.ApsData.Channel}}selected{{end}}>{{.}}</option>
                     {{end}}
                 </select>
             </div>
@@ -35,8 +35,8 @@
             <div class="flex-1 min-w-[200px]">
                 <select name="status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <option value="">All Statuses</option>
-                    {{range .Statuses}}
-                        <option value="{{.}}" {{if eq . $.Status}}selected{{end}}>{{.}}</option>
+                    {{range .ApsData.Statuses}}
+                        <option value="{{.}}" {{if eq . $.ApsData.Status}}selected{{end}}>{{.}}</option>
                     {{end}}
                 </select>
             </div>
@@ -61,7 +61,7 @@
                 </tr>
             </thead>
             <tbody>
-                {{range .Result.APs}}
+                {{range .ApsData.Result.Targets}}
                 <tr class="hover:bg-purple-50 transition-colors">
                     <td class="px-4 py-3 border-b border-gray-100">{{.ESSID}}</td>
                     <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.BSSID}}</td>
@@ -108,28 +108,28 @@
     </div>
 
     <!-- Pagination -->
-    {{if gt .Result.TotalPages 1}}
+    {{if gt .ApsData.Result.TotalPages 1}}
     <div class="flex justify-center items-center mt-6 gap-2 flex-wrap">
-        {{if gt .Result.Page 1}}
-            <a href="?page=1{{if .Search}}&search={{.Search}}{{end}}{{if .Encryption}}&encryption={{.Encryption}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}{{if .Status}}&status={{.Status}}{{end}}" 
+        {{if gt .ApsData.Result.Page 1}}
+            <a href="?page=1{{if .ApsData.Search}}&search={{.ApsData.Search}}{{end}}{{if .ApsData.Encryption}}&encryption={{.ApsData.Encryption}}{{end}}{{if .ApsData.Channel}}&channel={{.ApsData.Channel}}{{end}}{{if .ApsData.Status}}&status={{.ApsData.Status}}{{end}}" 
                class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">First</a>
-            <a href="?page={{sub .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Encryption}}&encryption={{.Encryption}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}{{if .Status}}&status={{.Status}}{{end}}" 
+            <a href="?page={{sub .ApsData.Result.Page 1}}{{if .ApsData.Search}}&search={{.ApsData.Search}}{{end}}{{if .ApsData.Encryption}}&encryption={{.ApsData.Encryption}}{{end}}{{if .ApsData.Channel}}&channel={{.ApsData.Channel}}{{end}}{{if .ApsData.Status}}&status={{.ApsData.Status}}{{end}}" 
                class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Previous</a>
         {{end}}
         
-        {{range pageRange .Result.TotalPages .Result.Page}}
-            {{if eq . $.Result.Page}}
+        {{range pageRange .ApsData.Result.TotalPages .ApsData.Result.Page}}
+            {{if eq . $.ApsData.Result.Page}}
                 <span class="px-3 py-2 bg-purple-600 text-white border border-purple-600 rounded-lg">{{.}}</span>
             {{else}}
-                <a href="?page={{.}}{{if $.Search}}&search={{$.Search}}{{end}}{{if $.Encryption}}&encryption={{$.Encryption}}{{end}}{{if $.Channel}}&channel={{$.Channel}}{{end}}{{if $.Status}}&status={{$.Status}}{{end}}" 
+                <a href="?page={{.}}{{if $.ApsData.Search}}&search={{$.ApsData.Search}}{{end}}{{if $.ApsData.Encryption}}&encryption={{$.ApsData.Encryption}}{{end}}{{if $.ApsData.Channel}}&channel={{$.ApsData.Channel}}{{end}}{{if $.ApsData.Status}}&status={{$.ApsData.Status}}{{end}}" 
                    class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">{{.}}</a>
             {{end}}
         {{end}}
         
-        {{if lt .Result.Page .Result.TotalPages}}
-            <a href="?page={{add .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}{{if .Encryption}}&encryption={{.Encryption}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}{{if .Status}}&status={{.Status}}{{end}}" 
+        {{if lt .ApsData.Result.Page .ApsData.Result.TotalPages}}
+            <a href="?page={{add .ApsData.Result.Page 1}}{{if .ApsData.Search}}&search={{.ApsData.Search}}{{end}}{{if .ApsData.Encryption}}&encryption={{.ApsData.Encryption}}{{end}}{{if .ApsData.Channel}}&channel={{.ApsData.Channel}}{{end}}{{if .ApsData.Status}}&status={{.ApsData.Status}}{{end}}" 
                class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Next</a>
-            <a href="?page={{.Result.TotalPages}}{{if .Search}}&search={{.Search}}{{end}}{{if .Encryption}}&encryption={{.Encryption}}{{end}}{{if .Channel}}&channel={{.Channel}}{{end}}{{if .Status}}&status={{.Status}}{{end}}" 
+            <a href="?page={{.ApsData.Result.TotalPages}}{{if .ApsData.Search}}&search={{.ApsData.Search}}{{end}}{{if .ApsData.Encryption}}&encryption={{.ApsData.Encryption}}{{end}}{{if .ApsData.Channel}}&channel={{.ApsData.Channel}}{{end}}{{if .ApsData.Status}}&status={{.ApsData.Status}}{{end}}" 
                class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Last</a>
         {{end}}
     </div>
@@ -137,7 +137,7 @@
 
     <!-- Info Panel -->
     <div class="mt-4 text-center p-4 bg-gray-50 rounded-lg text-gray-600">
-        <p>Total APs: {{.Result.Total}} | Page {{.Result.Page}} of {{.Result.TotalPages}}</p>
+        <p>Total APs: {{.ApsData.Result.TotalCount}} | Page {{.ApsData.Result.Page}} of {{.ApsData.Result.TotalPages}}</p>
     </div>
 </div>
 {{end}}

@@ -10,7 +10,7 @@
     <div class="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
         <form method="GET" class="flex flex-wrap gap-4 items-center">
             <div class="flex-1 min-w-[300px]">
-                <input type="text" name="search" placeholder="Search ESSID or client MAC..." value="{{.Search}}" 
+                <input type="text" name="search" placeholder="Search ESSID or client MAC..." value="{{.ProbePageData.Search}}" 
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
             </div>
             
@@ -33,7 +33,7 @@
                 </tr>
             </thead>
             <tbody>
-                {{range .Result.Probes}}
+                {{range .ProbePageData.Result.Targets}}
                 <tr class="hover:bg-purple-50 transition-colors">
                     <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.ClientMAC}}</td>
                     <td class="px-4 py-3 border-b border-gray-100">
@@ -58,28 +58,28 @@
     </div>
 
     <!-- Pagination -->
-    {{if gt .Result.TotalPages 1}}
+    {{if gt .ProbePageData.Result.TotalPages 1}}
     <div class="flex justify-center items-center mt-6 gap-2 flex-wrap">
-        {{if gt .Result.Page 1}}
-            <a href="?page=1{{if .Search}}&search={{.Search}}{{end}}" 
+        {{if gt .ProbePageData.Result.Page 1}}
+            <a href="?page=1{{if .ProbePageData.Search}}&search={{.ProbePageData.Search}}{{end}}" 
                class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">First</a>
-            <a href="?page={{sub .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}" 
+            <a href="?page={{sub .ProbePageData.Result.Page 1}}{{if .ProbePageData.Search}}&search={{.ProbePageData.Search}}{{end}}" 
                class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Previous</a>
         {{end}}
         
-        {{range pageRange .Result.TotalPages .Result.Page}}
-            {{if eq . $.Result.Page}}
+        {{range pageRange .ProbePageData.Result.TotalPages .ProbePageData.Result.Page}}
+            {{if eq . $.ProbePageData.Result.Page}}
                 <span class="px-3 py-2 bg-purple-600 text-white border border-purple-600 rounded-lg">{{.}}</span>
             {{else}}
-                <a href="?page={{.}}{{if $.Search}}&search={{$.Search}}{{end}}" 
+                <a href="?page={{.}}{{if $.ProbePageData.Search}}&search={{$.ProbePageData.Search}}{{end}}" 
                    class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">{{.}}</a>
             {{end}}
         {{end}}
         
-        {{if lt .Result.Page .Result.TotalPages}}
-            <a href="?page={{add .Result.Page 1}}{{if .Search}}&search={{.Search}}{{end}}" 
+        {{if lt .ProbePageData.Result.Page .ProbePageData.Result.TotalPages}}
+            <a href="?page={{add .ProbePageData.Result.Page 1}}{{if .ProbePageData.Search}}&search={{.ProbePageData.Search}}{{end}}" 
                class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Next</a>
-            <a href="?page={{.Result.TotalPages}}{{if .Search}}&search={{.Search}}{{end}}" 
+            <a href="?page={{.ProbePageData.Result.TotalPages}}{{if .ProbePageData.Search}}&search={{.ProbePageData.Search}}{{end}}" 
                class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Last</a>
         {{end}}
     </div>
@@ -87,7 +87,7 @@
 
     <!-- Info Panel -->
     <div class="mt-4 text-center p-4 bg-gray-50 rounded-lg text-gray-600">
-        <p>Total Probes: {{.Result.Total}} | Page {{.Result.Page}} of {{.Result.TotalPages}}</p>
+        <p>Total Probes: {{.ProbePageData.Result.TotalCount}} | Page {{.ProbePageData.Result.Page}} of {{.ProbePageData.Result.TotalPages}}</p>
     </div>
 </div>
 {{end}}
