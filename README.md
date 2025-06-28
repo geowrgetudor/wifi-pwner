@@ -65,6 +65,7 @@ A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capt
 - **Automatic Password Cracking**: Built-in WPA2 handshake cracking using aircrack-ng
 - **Wordlist Support**: Download and use popular wordlists like rockyou.txt
 - **Probe Request Monitoring**: Automatic capture of client probe requests for device intelligence
+- **Discovery-Only Mode**: Scan and log networks without capturing handshakes (--discover-only)
 
 Upcoming:
 
@@ -182,6 +183,7 @@ sudo ./dist/wifi-pwner --interface wlan0
 - `--b-expose`: Expose Bettercap API on 0.0.0.0 instead of 127.0.0.1
 - `--webui`: Enable custom web UI on port 8080 (default: `true`)
 - `--autocrack`: Path to wordlist file for automatic WPA2 handshake cracking
+- `--discover-only`: Only discover and log APs without capturing handshakes (default: `false`)
 
 ### Examples
 
@@ -206,6 +208,9 @@ sudo ./dist/wifi-pwner --interface wlan0 --autocrack ./dist/rockyou.txt
 
 # Enable automatic cracking with custom wordlist
 sudo ./dist/wifi-pwner --interface wlan0 --autocrack /path/to/custom/wordlist.txt
+
+# Run in discovery-only mode (no handshake capture)
+sudo ./dist/wifi-pwner --interface wlan0 --discover-only
 ```
 
 ## 🔐 Automatic Password Cracking

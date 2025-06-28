@@ -46,8 +46,8 @@ type Config struct {
 	BettercapApiExpose bool
 	WebUI              bool
 	WorkingDir         string
-	AutoCrack          bool
-	WordlistPath       string
+	AutoCrack          string
+	DiscoverOnly       bool
 }
 
 type BettercapCommand struct {
@@ -71,7 +71,7 @@ type SessionData struct {
 
 type ProbeData struct {
 	ESSID  string `json:"essid"`
-	MAC    string `json:"mac"`   
+	MAC    string `json:"mac"`
 	RSSI   int    `json:"rssi"`
 	Vendor string `json:"vendor"`
 }
@@ -83,8 +83,8 @@ type BettercapEvent struct {
 }
 
 const (
-	DefaultWebPort        = "8080"
-	BettercapSessionURL   = "http://127.0.0.1:%s/api/session"
-	BettercapEventsURL    = "http://127.0.0.1:%s/api/events"
-	RetryDelay            = 5 * time.Minute
+	DefaultWebPort      = "8080"
+	BettercapSessionURL = "http://127.0.0.1:%s/api/session"
+	BettercapEventsURL  = "http://127.0.0.1:%s/api/events"
+	RetryDelay          = 5 * time.Minute
 )

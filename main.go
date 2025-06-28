@@ -25,13 +25,14 @@ func main() {
 
 	// Parse command line flags
 	var (
-		iface     = flag.String("interface", "", "WiFi interface to use (required)")
-		mode      = flag.String("mode", "2.4", "WiFi mode: 2.4 or 5 (default: 2.4)")
-		clean     = flag.Bool("clean", false, "Clean everything, start fresh")
-		bApiPort  = flag.String("b-api-port", "8081", "Bettercap API port (default: 8081)")
-		bExpose   = flag.Bool("b-expose", false, "Expose Bettercap API on 0.0.0.0 instead of 127.0.0.1 (default: false)")
-		webui     = flag.Bool("webui", true, "Enable web UI on port 8080 (default: true)")
-		autocrack = flag.String("autocrack", "", "Path to wordlist file for automatic WPA2 handshake cracking")
+		iface        = flag.String("interface", "", "WiFi interface to use (required)")
+		mode         = flag.String("mode", "2.4", "WiFi mode: 2.4 or 5 (default: 2.4)")
+		clean        = flag.Bool("clean", false, "Clean everything, start fresh")
+		bApiPort     = flag.String("b-api-port", "8081", "Bettercap API port (default: 8081)")
+		bExpose      = flag.Bool("b-expose", false, "Expose Bettercap API on 0.0.0.0 instead of 127.0.0.1 (default: false)")
+		webui        = flag.Bool("webui", true, "Enable web UI on port 8080 (default: true)")
+		autocrack    = flag.String("autocrack", "", "Path to wordlist file for automatic WPA2 handshake cracking")
+		discoverOnly = flag.Bool("discover-only", false, "Only discover and log APs without capturing handshakes (default: false)")
 	)
 	flag.Parse()
 
@@ -60,8 +61,8 @@ func main() {
 		BettercapApiExpose: *bExpose,
 		WebUI:              *webui,
 		WorkingDir:         workingDir,
-		AutoCrack:          *autocrack != "",
-		WordlistPath:       *autocrack,
+		AutoCrack:          *autocrack,
+		DiscoverOnly:       *discoverOnly,
 	}
 
 	if config.Clean {
@@ -101,8 +102,8 @@ func main() {
 
 	// Initialize cracker if enabled
 	var cracker *src.Cracker
-	if config.AutoCrack {
-		cracker = src.NewCracker(db, config.WordlistPath)
+	if config.AutoCrack != "" {
+		cracker = src.NewCracker(db, config.AutoCrack)
 		if err := cracker.LoadInitialTargets(); err != nil {
 			log.Printf("Warning: Failed to load initial crack targets: %v", err)
 		}
@@ -149,30 +150,35 @@ func main() {
 			continue
 		}
 
-		bestTarget := scanner.FindBestAvailableTarget(targets)
-		if bestTarget == nil {
-			continue
-		}
-
-		log.Printf("[TARGET] %s (%s) %ddBm", bestTarget.ESSID, bestTarget.BSSID, bestTarget.Signal)
-
-		capFile, err := handshake.CaptureHandshake(bestTarget, scanner.GetChannelsForMode())
-		if err != nil {
-			log.Printf("[ERROR] %s", err)
-			db.SaveTarget(bestTarget, "", src.StatusFailedToCap)
-			continue
-		}
-
-		if capFile != "" {
-			log.Printf("[CAPTURED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
-			db.SaveTarget(bestTarget, capFile, src.StatusHandshakeCaptured)
-
-			if src.GetCrackingEnabled() {
-				src.AddToCrackQueue(bestTarget.BSSID, bestTarget.ESSID, capFile)
-			}
+		if config.DiscoverOnly {
+			// TODO: update last seen
 		} else {
-			log.Printf("[FAILED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
-			db.SaveTarget(bestTarget, "", src.StatusFailedToCap)
+			// Normal mode: find best target and capture handshake
+			bestTarget := scanner.FindBestAvailableTarget(targets)
+			if bestTarget == nil {
+				continue
+			}
+
+			log.Printf("[TARGET] %s (%s) %ddBm", bestTarget.ESSID, bestTarget.BSSID, bestTarget.Signal)
+
+			capFile, err := handshake.CaptureHandshake(bestTarget, scanner.GetChannelsForMode())
+			if err != nil {
+				log.Printf("[ERROR] %s", err)
+				db.SaveTarget(bestTarget, "", src.StatusFailedToCap)
+				continue
+			}
+
+			if capFile != "" {
+				log.Printf("[CAPTURED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
+				db.SaveTarget(bestTarget, capFile, src.StatusHandshakeCaptured)
+
+				if src.GetCrackingEnabled() {
+					src.AddToCrackQueue(bestTarget.BSSID, bestTarget.ESSID, capFile)
+				}
+			} else {
+				log.Printf("[FAILED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
+				db.SaveTarget(bestTarget, "", src.StatusFailedToCap)
+			}
 		}
 	}
 }
