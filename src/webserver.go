@@ -312,13 +312,39 @@ func (w *WebServer) handleDeleteTarget(resp http.ResponseWriter, req *http.Reque
 }
 
 func (w *WebServer) handleHomepage(resp http.ResponseWriter, req *http.Request) {
+	// Get total AP count
+	apsResult, err := w.db.GetPaginatedTargets(FilterParams{Page: 1, PerPage: 1})
+	if err != nil {
+		log.Printf("[ERROR] Failed to get APs count: %v", err)
+	}
+
+	// Get total probe count
+	probesResult, err := w.db.GetPaginatedProbes(FilterParams{Page: 1, PerPage: 1})
+	if err != nil {
+		log.Printf("[ERROR] Failed to get probes count: %v", err)
+	}
+
+	// Create data structures for the template
+	var apsData *ApsData
+	var probeData *ProbePageData
+	
+	if apsResult != nil {
+		apsData = &ApsData{Result: apsResult}
+	}
+	
+	if probesResult != nil {
+		probeData = &ProbePageData{Result: probesResult}
+	}
+
 	templateData := TemplateData{
-		Title: "Dashboard",
+		Title:         "Dashboard",
+		ApsData:       apsData,
+		ProbePageData: probeData,
 	}
 
 	resp.Header().Set("Content-Type", "text/html")
 	// Execute the base template
-	err := w.templates.ExecuteTemplate(resp, "base.html", templateData)
+	err = w.templates.ExecuteTemplate(resp, "base.html", templateData)
 	if err != nil {
 		log.Printf("[ERROR] Homepage template execution error: %v", err)
 		http.Error(resp, err.Error(), http.StatusInternalServerError)

@@ -1,0 +1,15 @@
+{
+  "name": "wifi-pwner",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">   <img src=\"https://raw.githubusercontent.com/geowrgetudor/wifi-pwner/refs/heads/main/media/cover.png\" alt=\"WiFi Pwner Logo\" /> </div>",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwindcss build -o src/static/css/index.css",
+    "watch": "tailwindcss build -o src/static/css/index.css --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

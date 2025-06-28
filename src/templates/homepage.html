@@ -83,13 +83,11 @@
       <p class="text-gray-600 mb-6">View operational statistics and metrics</p>
       <div class="text-gray-700 space-y-1">
         <p>
-          <span id="total-aps" class="font-bold text-gray-900">Loading...</span>
+          <span id="total-aps" class="font-bold text-gray-900">{{if .ApsData}}{{.ApsData.Result.TotalCount}}{{else}}0{{end}}</span>
           Total APs
         </p>
         <p>
-          <span id="total-probes" class="font-bold text-gray-900"
-            >Loading...</span
-          >
+          <span id="total-probes" class="font-bold text-gray-900">{{if .ProbePageData}}{{.ProbePageData.Result.TotalCount}}{{else}}0{{end}}</span>
           Total Probes
         </p>
       </div>
@@ -99,5 +97,5 @@
 {{end}}
 
 {{define "homepage-scripts"}}
-<script src="/static/index.js"></script>
+<script src="/static/js/index.js"></script>
 {{end}}
