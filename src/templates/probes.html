@@ -1,55 +1,55 @@
 {{define "probes-content"}}
-<div class="p-6">
+<div class="p-8">
     <!-- Navigation Tabs -->
-    <div class="flex items-center gap-2 mb-6">
-        <a href="/" class="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-50 font-semibold rounded-lg transition-colors">Dashboard</a>
-        <a href="/aps" class="px-6 py-3 text-gray-600 hover:text-gray-800 hover:bg-gray-50 font-semibold rounded-lg transition-colors">APs</a>
-        <a href="/probes" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg">Probes</a>
+    <div class="flex items-center gap-3 mb-8">
+        <a href="/" class="px-6 py-3 text-gray-400 hover:text-emerald-400 hover:bg-zinc-700 font-semibold rounded-lg transition-all duration-200">Dashboard</a>
+        <a href="/aps" class="px-6 py-3 text-gray-400 hover:text-emerald-400 hover:bg-zinc-700 font-semibold rounded-lg transition-all duration-200">APs</a>
+        <a href="/probes" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-lg shadow-lg">Probes</a>
     </div>
 
     <!-- Filters -->
-    <div class="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+    <div class="mb-8 p-6 bg-zinc-700 rounded-lg border border-zinc-600">
         <form method="GET" class="flex flex-wrap gap-4 items-center">
             <div class="flex-1 min-w-[300px]">
                 <input type="text" name="search" placeholder="Search ESSID or client MAC..." value="{{if .ProbePageData}}{{.ProbePageData.Search}}{{end}}" 
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                       class="w-full px-4 py-3 bg-zinc-800 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-200 placeholder-gray-400">
             </div>
             
-            <button type="submit" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200 transform hover:-translate-y-0.5 whitespace-nowrap">Search</button>
-            <a href="/probes" class="px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors whitespace-nowrap">Clear</a>
+            <button type="submit" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-emerald-400 hover:to-emerald-500 transition-all duration-200 transform hover:scale-105 whitespace-nowrap shadow-lg">Search</button>
+            <a href="/probes" class="px-6 py-3 bg-zinc-600 text-white font-semibold rounded-lg hover:bg-zinc-500 transition-colors whitespace-nowrap">Clear</a>
         </form>
     </div>
 
     <!-- Table -->
-    <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
-        <table class="w-full border-collapse bg-white">
+    <div class="overflow-x-auto rounded-lg shadow-xl border border-zinc-600">
+        <table class="w-full border-collapse bg-zinc-800">
             <thead>
-                <tr class="bg-gray-50">
-                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Client MAC</th>
-                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Probed ESSID</th>
-                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Signal Strength</th>
-                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Vendor</th>
-                    <th class="px-4 py-3 text-left font-semibold text-gray-700 border-b border-gray-200">Probed At</th>
+                <tr class="bg-zinc-700">
+                    <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Client MAC</th>
+                    <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Probed ESSID</th>
+                    <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Signal Strength</th>
+                    <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Vendor</th>
+                    <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Probed At</th>
                 </tr>
             </thead>
             <tbody>
                 {{if and .ProbePageData .ProbePageData.Result}}{{range .ProbePageData.Result.Targets}}
-                <tr class="hover:bg-purple-50 transition-colors">
-                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm">{{.mac}}</td>
-                    <td class="px-4 py-3 border-b border-gray-100">
+                <tr class="hover:bg-zinc-700 transition-colors">
+                    <td class="px-6 py-4 border-b border-zinc-700 font-mono text-sm text-gray-300">{{.mac}}</td>
+                    <td class="px-6 py-4 border-b border-zinc-700 text-gray-200">
                         {{if .essid}}
                             {{.essid}}
                         {{else}}
-                            <em class="text-gray-500 italic">Hidden/Broadcast</em>
+                            <em class="text-gray-400 italic">Hidden/Broadcast</em>
                         {{end}}
                     </td>
-                    <td class="px-4 py-3 border-b border-gray-100 text-gray-600">{{.signal}} dBm</td>
-                    <td class="px-4 py-3 border-b border-gray-100 text-gray-600">{{.vendor}}</td>
-                    <td class="px-4 py-3 border-b border-gray-100 font-mono text-sm text-gray-600">{{.probedAt}}</td>
+                    <td class="px-6 py-4 border-b border-zinc-700 text-gray-400">{{.signal}} dBm</td>
+                    <td class="px-6 py-4 border-b border-zinc-700 text-gray-400">{{.vendor}}</td>
+                    <td class="px-6 py-4 border-b border-zinc-700 font-mono text-sm text-gray-400">{{.probedAt}}</td>
                 </tr>
                 {{else}}
                 <tr>
-                    <td colspan="5" class="px-4 py-8 text-center text-gray-500 italic">No probe requests found</td>
+                    <td colspan="5" class="px-6 py-12 text-center text-gray-400 italic">No probe requests found</td>
                 </tr>
                 {{end}}{{end}}
             </tbody>
@@ -61,33 +61,33 @@
     <div class="flex justify-center items-center mt-6 gap-2 flex-wrap">
         {{if gt .ProbePageData.Result.Page 1}}
             <a href="?page=1{{if .ProbePageData.Search}}&search={{.ProbePageData.Search}}{{end}}" 
-               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">First</a>
+               class="px-4 py-2 text-emerald-400 border border-emerald-400 rounded-lg hover:bg-emerald-400 hover:text-white transition-colors">First</a>
             <a href="?page={{sub .ProbePageData.Result.Page 1}}{{if .ProbePageData.Search}}&search={{.ProbePageData.Search}}{{end}}" 
-               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Previous</a>
+               class="px-4 py-2 text-emerald-400 border border-emerald-400 rounded-lg hover:bg-emerald-400 hover:text-white transition-colors">Previous</a>
         {{end}}
         
         {{range pageRange .ProbePageData.Result.TotalPages .ProbePageData.Result.Page}}
             {{if eq . $.ProbePageData.Result.Page}}
-                <span class="px-3 py-2 bg-purple-600 text-white border border-purple-600 rounded-lg">{{.}}</span>
+                <span class="px-4 py-2 bg-emerald-500 text-white border border-emerald-500 rounded-lg">{{.}}</span>
             {{else}}
                 <a href="?page={{.}}{{if $.ProbePageData.Search}}&search={{$.ProbePageData.Search}}{{end}}" 
-                   class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">{{.}}</a>
+                   class="px-4 py-2 text-emerald-400 border border-emerald-400 rounded-lg hover:bg-emerald-400 hover:text-white transition-colors">{{.}}</a>
             {{end}}
         {{end}}
         
         {{if lt .ProbePageData.Result.Page .ProbePageData.Result.TotalPages}}
             <a href="?page={{add .ProbePageData.Result.Page 1}}{{if .ProbePageData.Search}}&search={{.ProbePageData.Search}}{{end}}" 
-               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Next</a>
+               class="px-4 py-2 text-emerald-400 border border-emerald-400 rounded-lg hover:bg-emerald-400 hover:text-white transition-colors">Next</a>
             <a href="?page={{.ProbePageData.Result.TotalPages}}{{if .ProbePageData.Search}}&search={{.ProbePageData.Search}}{{end}}" 
-               class="px-3 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">Last</a>
+               class="px-4 py-2 text-emerald-400 border border-emerald-400 rounded-lg hover:bg-emerald-400 hover:text-white transition-colors">Last</a>
         {{end}}
     </div>
     {{end}}
 
     <!-- Info Panel -->
     {{if and .ProbePageData .ProbePageData.Result}}
-    <div class="mt-4 text-center p-4 bg-gray-50 rounded-lg text-gray-600">
-        <p>Total Probes: {{.ProbePageData.Result.TotalCount}} | Page {{.ProbePageData.Result.Page}} of {{.ProbePageData.Result.TotalPages}}</p>
+    <div class="mt-6 text-center p-4 bg-zinc-700 rounded-lg text-gray-300 border border-zinc-600">
+        <p>Total Probes: <span class="text-emerald-400 font-semibold">{{.ProbePageData.Result.TotalCount}}</span> | Page <span class="text-emerald-400 font-semibold">{{.ProbePageData.Result.Page}}</span> of <span class="text-emerald-400 font-semibold">{{.ProbePageData.Result.TotalPages}}</span></p>
     </div>
     {{end}}
 </div>

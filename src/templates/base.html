@@ -8,17 +8,17 @@
     <link rel="stylesheet" href="/static/css/index.css">
     {{block "head" .}}{{end}}
   </head>
-  <body class="bg-gray-50 min-h-screen">
+  <body class="bg-zinc-900 min-h-screen text-gray-100">
     <div class="container mx-auto px-4 py-8">
-      <div class="bg-white rounded-lg shadow-lg">
-        <div class="px-6 py-4 border-b border-gray-200">
+      <div class="bg-zinc-800 rounded-lg shadow-2xl border border-zinc-700">
+        <div class="px-6 py-6 border-b border-zinc-700">
           <div class="flex justify-between items-start">
             <div>
-              <h1 class="text-3xl font-bold text-gray-900">
+              <h1 class="text-3xl font-bold text-emerald-400">
                 WiFi Pwner - {{.Title}}
               </h1>
               {{if or (eq .Title "APs") (eq .Title "Probes")}}
-              <p class="text-sm text-gray-600 mt-1">
+              <p class="text-sm text-gray-400 mt-1">
                 {{if eq .Title "APs"}}
                   Showing {{.ApsData.Result.TotalCount}} total access points
                 {{else if eq .Title "Probes"}}
@@ -40,11 +40,11 @@
         </div>
         {{if or (eq .Title "APs") (eq .Title "Probes")}}
         <!-- Breadcrumb Navigation -->
-        <div class="px-6 py-3 bg-gray-100 border-b border-gray-200">
+        <div class="px-6 py-4 bg-zinc-700 border-b border-zinc-600">
           <div class="breadcrumb">
-            <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">Dashboard</a>
+            <a href="/" class="text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors">Dashboard</a>
             <span class="text-gray-500 mx-2">→</span>
-            <span class="text-gray-900 text-sm font-medium">{{.Title}}</span>
+            <span class="text-gray-200 text-sm font-medium">{{.Title}}</span>
           </div>
         </div>
         {{end}}
@@ -65,7 +65,7 @@
             <a
               href="https://github.com/geowrgetudor/wifi-pwner"
               target="_blank"
-              class="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+              class="inline-flex items-center space-x-2 text-gray-400 hover:text-emerald-400 transition-colors"
             >
               <svg
                 class="w-5 h-5"
@@ -80,8 +80,8 @@
               <span class="font-medium">WiFi Pwner</span>
             </a>
           </div>
-          <div class="text-sm text-gray-500">
-            <p class="font-semibold text-red-600">⚠️ LEGAL DISCLAIMER</p>
+          <div class="text-sm text-gray-400">
+            <p class="font-semibold text-red-400">⚠️ LEGAL DISCLAIMER</p>
             <p class="mt-1">
               This tool is for educational purposes only. Use only on networks
               you own or have explicit permission to test.

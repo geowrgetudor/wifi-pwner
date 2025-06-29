@@ -1,52 +1,52 @@
 {{define "homepage-content"}}
-<div class="p-6">
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8" id="status-panel">
+<div class="p-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10" id="status-panel">
     <div
-      class="flex items-center bg-gray-50 rounded-lg p-4 border border-gray-200"
+      class="flex items-center bg-zinc-700 rounded-lg p-6 border border-zinc-600 hover:border-emerald-500 transition-colors"
     >
       <div class="text-4xl mr-4" id="scanning-icon">📡</div>
       <div>
-        <h3 class="text-lg font-semibold text-gray-800">Scanning</h3>
-        <p id="scanning-status" class="text-sm font-medium">Loading...</p>
+        <h3 class="text-lg font-semibold text-gray-200">Scanning</h3>
+        <p id="scanning-status" class="text-sm font-medium text-emerald-400">Loading...</p>
       </div>
     </div>
 
     <div
-      class="flex items-center bg-gray-50 rounded-lg p-4 border border-gray-200"
+      class="flex items-center bg-zinc-700 rounded-lg p-6 border border-zinc-600 hover:border-emerald-500 transition-colors"
     >
       <div class="text-4xl mr-4" id="cracking-icon">🔑</div>
       <div>
-        <h3 class="text-lg font-semibold text-gray-800">Cracking Handshakes</h3>
-        <p id="cracking-status" class="text-sm font-medium">Loading...</p>
+        <h3 class="text-lg font-semibold text-gray-200">Cracking Handshakes</h3>
+        <p id="cracking-status" class="text-sm font-medium text-emerald-400">Loading...</p>
       </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
     <div
-      class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center"
+      class="bg-zinc-700 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 text-center border border-zinc-600 hover:border-emerald-500 transform hover:-translate-y-1"
     >
-      <div class="text-6xl mb-4">📶</div>
-      <h3 class="text-xl font-bold text-gray-800 mb-2">Access Points</h3>
-      <p class="text-gray-600 mb-6">
+      <div class="text-6xl mb-6">📶</div>
+      <h3 class="text-xl font-bold text-gray-200 mb-3">Access Points</h3>
+      <p class="text-gray-400 mb-8">
         View and manage discovered WiFi access points
       </p>
       <a
         href="/aps"
-        class="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200 transform hover:-translate-y-0.5"
+        class="inline-block px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-emerald-400 hover:to-emerald-500 transition-all duration-200 transform hover:scale-105 shadow-lg"
         >View APs</a
       >
     </div>
 
     <div
-      class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center"
+      class="bg-zinc-700 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 text-center border border-zinc-600 hover:border-emerald-500 transform hover:-translate-y-1"
     >
-      <div class="text-6xl mb-4">📱</div>
-      <h3 class="text-xl font-bold text-gray-800 mb-2">Client Probes</h3>
-      <p class="text-gray-600 mb-6">Monitor WiFi client probe requests</p>
+      <div class="text-6xl mb-6">📱</div>
+      <h3 class="text-xl font-bold text-gray-200 mb-3">Client Probes</h3>
+      <p class="text-gray-400 mb-8">Monitor WiFi client probe requests</p>
       <a
         href="/probes"
-        class="inline-block px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200 transform hover:-translate-y-0.5"
+        class="inline-block px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-emerald-400 hover:to-emerald-500 transition-all duration-200 transform hover:scale-105 shadow-lg"
         >View Probes</a
       >
     </div>
@@ -76,19 +76,19 @@
     </div> -->
 
     <div
-      class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-6 text-center"
+      class="bg-zinc-700 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 text-center border border-zinc-600 hover:border-emerald-500 transform hover:-translate-y-1"
     >
-      <div class="text-6xl mb-4">📊</div>
-      <h3 class="text-xl font-bold text-gray-800 mb-2">Statistics</h3>
-      <p class="text-gray-600 mb-6">View operational statistics and metrics</p>
-      <div class="text-gray-700 space-y-1">
+      <div class="text-6xl mb-6">📊</div>
+      <h3 class="text-xl font-bold text-gray-200 mb-3">Statistics</h3>
+      <p class="text-gray-400 mb-8">View operational statistics and metrics</p>
+      <div class="text-gray-300 space-y-3">
         <p>
-          <span id="total-aps" class="font-bold text-gray-900">{{if .ApsData}}{{.ApsData.Result.TotalCount}}{{else}}0{{end}}</span>
-          Total APs
+          <span id="total-aps" class="font-bold text-emerald-400 text-2xl">{{if .ApsData}}{{.ApsData.Result.TotalCount}}{{else}}0{{end}}</span>
+          <br><span class="text-sm text-gray-400">Total APs</span>
         </p>
         <p>
-          <span id="total-probes" class="font-bold text-gray-900">{{if .ProbePageData}}{{.ProbePageData.Result.TotalCount}}{{else}}0{{end}}</span>
-          Total Probes
+          <span id="total-probes" class="font-bold text-emerald-400 text-2xl">{{if .ProbePageData}}{{.ProbePageData.Result.TotalCount}}{{else}}0{{end}}</span>
+          <br><span class="text-sm text-gray-400">Total Probes</span>
         </p>
       </div>
     </div>
