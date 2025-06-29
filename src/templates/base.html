@@ -38,16 +38,14 @@
             </div>
           </div>
         </div>
-        {{if or (eq .Title "APs") (eq .Title "Probes")}}
-        <!-- Breadcrumb Navigation -->
+        <!-- Navigation Tabs -->
         <div class="px-6 py-4 bg-zinc-700 border-b border-zinc-600">
-          <div class="breadcrumb">
-            <a href="/" class="text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors">Dashboard</a>
-            <span class="text-gray-500 mx-2">→</span>
-            <span class="text-gray-200 text-sm font-medium">{{.Title}}</span>
+          <div class="flex items-center gap-3">
+            <a href="/" class="px-6 py-3 {{if eq .Title "Dashboard"}}bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg{{else}}text-gray-400 hover:text-emerald-400 hover:bg-zinc-600{{end}} font-semibold transition-all duration-200">Dashboard</a>
+            <a href="/aps" class="px-6 py-3 {{if eq .Title "APs"}}bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg{{else}}text-gray-400 hover:text-emerald-400 hover:bg-zinc-600{{end}} font-semibold transition-all duration-200">APs</a>
+            <a href="/probes" class="px-6 py-3 {{if eq .Title "Probes"}}bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg{{else}}text-gray-400 hover:text-emerald-400 hover:bg-zinc-600{{end}} font-semibold transition-all duration-200">Probes</a>
           </div>
         </div>
-        {{end}}
         <!-- Dynamic content here for each page -->
         {{if eq .Title "Dashboard"}}
           {{template "homepage-content" .}}
