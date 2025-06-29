@@ -77,7 +77,7 @@
                             <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
                                 {{.encryption}}
                             </span>
-                        {{else if or (contains .encryption "WPA") (contains .encryption "PSK")}}
+                        {{else if or (eq .encryption "WPA") (eq .encryption "WPA-PSK") (eq .encryption "WPA2-PSK") (eq .encryption "WPA/WPA2") (eq .encryption "WPA/WPA2-PSK")}}
                             <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
                                 {{.encryption}}
                             </span>
