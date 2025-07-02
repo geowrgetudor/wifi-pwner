@@ -33,7 +33,8 @@ func main() {
 		webui        = flag.Bool("webui", true, "Enable web UI on port 8080 (default: true)")
 		autocrack    = flag.String("autocrack", "", "Path to wordlist file for automatic WPA2 handshake cracking")
 		discoverOnly = flag.Bool("discover-only", false, "Only discover and log APs without capturing handshakes (default: false)")
-		gps          = flag.Bool("gps", false, "Enable GPS module for location tracking (default: false)")
+		gpsDevice    = flag.String("gps", "", "GPS device path (e.g., /dev/ttyACM0) - enables GPS when specified")
+		gpsBaudRate  = flag.Int("gps-baud", 9600, "GPS device baud rate (default: 9600)")
 	)
 	flag.Parse()
 
@@ -64,7 +65,8 @@ func main() {
 		WorkingDir:         workingDir,
 		AutoCrack:          *autocrack,
 		DiscoverOnly:       *discoverOnly,
-		GPS:                *gps,
+		GPSDevice:          *gpsDevice,
+		GPSBaudRate:        *gpsBaudRate,
 	}
 
 	if config.Clean {

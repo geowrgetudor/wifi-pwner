@@ -123,7 +123,7 @@ func (s *Scanner) GetTargets() ([]Target, error) {
 			
 			// Get GPS coordinates if GPS feature is enabled
 			var gpsLat, gpsLong *float64
-			if s.config.GPS {
+			if s.config.GPSDevice != "" {
 				if gpsData, err := s.bettercap.GetLatestGPSData(); err == nil && gpsData != nil {
 					gpsLat = &gpsData.Latitude
 					gpsLong = &gpsData.Longitude
@@ -139,7 +139,7 @@ func (s *Scanner) GetTargets() ([]Target, error) {
 				
 				// Get GPS coordinates if GPS feature is enabled
 				var gpsLat, gpsLong *float64
-				if s.config.GPS {
+				if s.config.GPSDevice != "" {
 					if gpsData, err := s.bettercap.GetLatestGPSData(); err == nil && gpsData != nil {
 						gpsLat = &gpsData.Latitude
 						gpsLong = &gpsData.Longitude

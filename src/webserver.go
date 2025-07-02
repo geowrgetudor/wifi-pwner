@@ -113,13 +113,7 @@ func (w *WebServer) loadTemplates() {
 	if err != nil {
 		log.Fatalf("Error loading embedded templates: %v", err)
 	}
-	
-	// Debug: List all loaded templates
-	for _, t := range w.templates.Templates() {
-		log.Printf("[DEBUG] Loaded template: %s", t.Name())
-	}
 }
-
 
 func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
 	page, _ := strconv.Atoi(req.URL.Query().Get("page"))
@@ -147,9 +141,6 @@ func (w *WebServer) handleAPs(resp http.ResponseWriter, req *http.Request) {
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
-	log.Printf("[DEBUG] APs result: TotalCount=%d, Page=%d, TotalPages=%d, TargetsCount=%d", 
-		result.TotalCount, result.Page, result.TotalPages, len(result.Targets))
 
 	encryptions, _ := w.db.GetUniqueEncryptions()
 	channels, _ := w.db.GetUniqueChannels()
@@ -327,11 +318,11 @@ func (w *WebServer) handleHomepage(resp http.ResponseWriter, req *http.Request) 
 	// Create data structures for the template
 	var apsData *ApsData
 	var probeData *ProbePageData
-	
+
 	if apsResult != nil {
 		apsData = &ApsData{Result: apsResult}
 	}
-	
+
 	if probesResult != nil {
 		probeData = &ProbePageData{Result: probesResult}
 	}

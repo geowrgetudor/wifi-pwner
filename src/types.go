@@ -48,7 +48,8 @@ type Config struct {
 	WorkingDir         string
 	AutoCrack          string
 	DiscoverOnly       bool
-	GPS                bool
+	GPSDevice          string
+	GPSBaudRate        int
 }
 
 type BettercapCommand struct {

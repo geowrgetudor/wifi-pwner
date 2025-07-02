@@ -50,8 +50,10 @@ func (b *Bettercap) Start() error {
 		apiAddress,
 	)
 
-	if b.config.GPS {
-		evalCmd += "; gps on"
+	if b.config.GPSDevice != "" {
+		evalCmd += fmt.Sprintf("; set gps.device %s; set gps.baudrate %d; gps on", 
+			b.config.GPSDevice, 
+			b.config.GPSBaudRate)
 	}
 
 	b.process = exec.Command("bettercap", "-iface", b.config.Interface, "-eval", evalCmd)

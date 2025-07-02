@@ -184,7 +184,8 @@ sudo ./dist/wifi-pwner --interface wlan0
 - `--webui`: Enable custom web UI on port 8080 (default: `true`)
 - `--autocrack`: Path to wordlist file for automatic WPA2 handshake cracking
 - `--discover-only`: Only discover and log APs without capturing handshakes (default: `false`)
-- `--gps`: Enable GPS module for location tracking (default: `false`)
+- `--gps`: GPS device path (e.g., `/dev/ttyACM0`) - enables GPS when specified
+- `--gps-baud`: GPS device baud rate (default: `9600`)
 
 ### Examples
 
@@ -214,7 +215,13 @@ sudo ./dist/wifi-pwner --interface wlan0 --autocrack /path/to/custom/wordlist.tx
 sudo ./dist/wifi-pwner --interface wlan0 --discover-only
 
 # Enable GPS tracking for location mapping
-sudo ./dist/wifi-pwner --interface wlan0 --gps
+sudo ./dist/wifi-pwner --interface wlan0 --gps /dev/ttyACM0
+
+# Enable GPS with custom baud rate
+sudo ./dist/wifi-pwner --interface wlan0 --gps /dev/ttyUSB0 --gps-baud 4800
+
+# Combine GPS with automatic cracking
+sudo ./dist/wifi-pwner --interface wlan0 --gps /dev/ttyACM0 --autocrack ./dist/rockyou.txt
 ```
 
 ## 🔐 Automatic Password Cracking
