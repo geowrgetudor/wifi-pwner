@@ -59,21 +59,71 @@ func (d *Database) Close() error {
 	return d.db.Close()
 }
 
-func (d *Database) SaveTarget(target *Target, handshakePath string, status Status) error {
-	_, err := d.db.Exec(`
-		INSERT OR REPLACE INTO aps 
-		(bssid, essid, signal, channel, encryption, handshake_path, status, last_scan) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		target.BSSID,
-		target.ESSID,
-		target.Signal,
-		target.Channel,
-		target.Encryption,
-		handshakePath,
-		string(status),
-		time.Now(),
-	)
-	return err
+func (d *Database) SaveTarget(target *Target, handshakePath string, status Status, gpsLat *float64, gpsLong *float64) error {
+	// Check if target already exists
+	var existingSignal int
+	var existingID int
+	err := d.db.QueryRow("SELECT id, signal FROM aps WHERE bssid = ?", target.BSSID).Scan(&existingID, &existingSignal)
+	
+	if err == sql.ErrNoRows {
+		// Target doesn't exist, insert new record
+		_, err := d.db.Exec(`
+			INSERT INTO aps 
+			(bssid, essid, signal, channel, encryption, handshake_path, status, last_scan, created_at, long, lat) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			target.BSSID,
+			target.ESSID,
+			target.Signal,
+			target.Channel,
+			target.Encryption,
+			handshakePath,
+			string(status),
+			time.Now(),
+			time.Now(), // created_at set to current time for new targets
+			gpsLong,
+			gpsLat,
+		)
+		return err
+	} else if err != nil {
+		return err
+	}
+
+	// Target exists, update it
+	// Only update GPS coordinates if new signal is better than existing
+	if target.Signal > existingSignal && gpsLat != nil && gpsLong != nil {
+		_, err := d.db.Exec(`
+			UPDATE aps 
+			SET essid = ?, signal = ?, channel = ?, encryption = ?, handshake_path = ?, status = ?, last_scan = ?, long = ?, lat = ?
+			WHERE bssid = ?`,
+			target.ESSID,
+			target.Signal,
+			target.Channel,
+			target.Encryption,
+			handshakePath,
+			string(status),
+			time.Now(),
+			gpsLong,
+			gpsLat,
+			target.BSSID,
+		)
+		return err
+	} else {
+		// Update without GPS coordinates
+		_, err := d.db.Exec(`
+			UPDATE aps 
+			SET essid = ?, signal = ?, channel = ?, encryption = ?, handshake_path = ?, status = ?, last_scan = ?
+			WHERE bssid = ?`,
+			target.ESSID,
+			target.Signal,
+			target.Channel,
+			target.Encryption,
+			handshakePath,
+			string(status),
+			time.Now(),
+			target.BSSID,
+		)
+		return err
+	}
 }
 
 func (d *Database) UpdateTargetPassword(bssid string, password string, status Status) error {
@@ -152,6 +202,12 @@ func (d *Database) ShouldSkipTarget(bssid string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func (d *Database) GetTargetSignal(bssid string) (int, error) {
+	var signal int
+	err := d.db.QueryRow("SELECT signal FROM aps WHERE bssid = ?", bssid).Scan(&signal)
+	return signal, err
 }
 
 func (d *Database) TargetExists(bssid string) (bool, error) {
@@ -233,7 +289,7 @@ func (d *Database) GetPaginatedTargets(params FilterParams) (*PaginatedResult, e
 
 	offset := (params.Page - 1) * params.PerPage
 	query := `
-		SELECT bssid, essid, signal, channel, encryption, handshake_path, status, last_scan, cracked_password 
+		SELECT bssid, essid, signal, channel, encryption, handshake_path, status, last_scan, cracked_password, created_at, long, lat 
 		FROM aps 
 		WHERE ` + whereClause + `
 		ORDER BY last_scan DESC
@@ -251,10 +307,11 @@ func (d *Database) GetPaginatedTargets(params FilterParams) (*PaginatedResult, e
 	for rows.Next() {
 		var bssid, essid, channel, encryption, handshakePath, status string
 		var signal int
-		var lastScan sql.NullTime
+		var lastScan, createdAt sql.NullTime
 		var crackedPassword sql.NullString
+		var latitude, longitude sql.NullFloat64
 
-		err := rows.Scan(&bssid, &essid, &signal, &channel, &encryption, &handshakePath, &status, &lastScan, &crackedPassword)
+		err := rows.Scan(&bssid, &essid, &signal, &channel, &encryption, &handshakePath, &status, &lastScan, &crackedPassword, &createdAt, &longitude, &latitude)
 		if err != nil {
 			continue
 		}
@@ -279,6 +336,24 @@ func (d *Database) GetPaginatedTargets(params FilterParams) (*PaginatedResult, e
 			target["crackedPassword"] = crackedPassword.String
 		} else {
 			target["crackedPassword"] = ""
+		}
+
+		if createdAt.Valid {
+			target["created_at"] = createdAt.Time.Format("2006-01-02 15:04:05")
+		} else {
+			target["created_at"] = ""
+		}
+
+		if latitude.Valid {
+			target["lat"] = latitude.Float64
+		} else {
+			target["lat"] = nil
+		}
+
+		if longitude.Valid {
+			target["long"] = longitude.Float64
+		} else {
+			target["long"] = nil
 		}
 
 		targets = append(targets, target)

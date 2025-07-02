@@ -48,6 +48,7 @@ type Config struct {
 	WorkingDir         string
 	AutoCrack          string
 	DiscoverOnly       bool
+	GPS                bool
 }
 
 type BettercapCommand struct {
@@ -80,6 +81,17 @@ type BettercapEvent struct {
 	Tag  string          `json:"tag"`
 	Time string          `json:"time"`
 	Data json.RawMessage `json:"data"`
+}
+
+type GPSData struct {
+	Updated       string  `json:"Updated"`
+	Latitude      float64 `json:"Latitude"`
+	Longitude     float64 `json:"Longitude"`
+	FixQuality    string  `json:"FixQuality"`
+	NumSatellites int     `json:"NumSatellites"`
+	HDOP          float64 `json:"HDOP"`
+	Altitude      float64 `json:"Altitude"`
+	Separation    float64 `json:"Separation"`
 }
 
 const (

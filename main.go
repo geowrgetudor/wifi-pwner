@@ -33,6 +33,7 @@ func main() {
 		webui        = flag.Bool("webui", true, "Enable web UI on port 8080 (default: true)")
 		autocrack    = flag.String("autocrack", "", "Path to wordlist file for automatic WPA2 handshake cracking")
 		discoverOnly = flag.Bool("discover-only", false, "Only discover and log APs without capturing handshakes (default: false)")
+		gps          = flag.Bool("gps", false, "Enable GPS module for location tracking (default: false)")
 	)
 	flag.Parse()
 
@@ -63,6 +64,7 @@ func main() {
 		WorkingDir:         workingDir,
 		AutoCrack:          *autocrack,
 		DiscoverOnly:       *discoverOnly,
+		GPS:                *gps,
 	}
 
 	if config.Clean {
@@ -164,20 +166,20 @@ func main() {
 			capFile, err := handshake.CaptureHandshake(bestTarget, scanner.GetChannelsForMode())
 			if err != nil {
 				log.Printf("[ERROR] %s", err)
-				db.SaveTarget(bestTarget, "", src.StatusFailedToCap)
+				db.SaveTarget(bestTarget, "", src.StatusFailedToCap, nil, nil)
 				continue
 			}
 
 			if capFile != "" {
 				log.Printf("[CAPTURED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
-				db.SaveTarget(bestTarget, capFile, src.StatusHandshakeCaptured)
+				db.SaveTarget(bestTarget, capFile, src.StatusHandshakeCaptured, nil, nil)
 
 				if src.GetCrackingEnabled() {
 					src.AddToCrackQueue(bestTarget.BSSID, bestTarget.ESSID, capFile)
 				}
 			} else {
 				log.Printf("[FAILED] %s (%s)", bestTarget.ESSID, bestTarget.BSSID)
-				db.SaveTarget(bestTarget, "", src.StatusFailedToCap)
+				db.SaveTarget(bestTarget, "", src.StatusFailedToCap, nil, nil)
 			}
 		}
 	}

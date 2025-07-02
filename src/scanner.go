@@ -120,7 +120,34 @@ func (s *Scanner) GetTargets() ([]Target, error) {
 
 		if !exists {
 			log.Printf("[NEW] Discovered %s (%s) %ddBm", target.ESSID, target.BSSID, target.Signal)
-			s.db.SaveTarget(&target, "", StatusDiscovered)
+			
+			// Get GPS coordinates if GPS feature is enabled
+			var gpsLat, gpsLong *float64
+			if s.config.GPS {
+				if gpsData, err := s.bettercap.GetLatestGPSData(); err == nil && gpsData != nil {
+					gpsLat = &gpsData.Latitude
+					gpsLong = &gpsData.Longitude
+				}
+			}
+			
+			s.db.SaveTarget(&target, "", StatusDiscovered, gpsLat, gpsLong)
+		} else {
+			// Target exists, check if we should update it with better signal
+			existingSignal, err := s.db.GetTargetSignal(target.BSSID)
+			if err == nil && target.Signal > existingSignal {
+				log.Printf("[UPDATE] Better signal for %s (%s) %ddBm (was %ddBm)", target.ESSID, target.BSSID, target.Signal, existingSignal)
+				
+				// Get GPS coordinates if GPS feature is enabled
+				var gpsLat, gpsLong *float64
+				if s.config.GPS {
+					if gpsData, err := s.bettercap.GetLatestGPSData(); err == nil && gpsData != nil {
+						gpsLat = &gpsData.Latitude
+						gpsLong = &gpsData.Longitude
+					}
+				}
+				
+				s.db.SaveTarget(&target, "", StatusDiscovered, gpsLat, gpsLong)
+			}
 		}
 
 		if target.Signal < -70 || target.ESSID == "" {

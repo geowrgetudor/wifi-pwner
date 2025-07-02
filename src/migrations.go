@@ -41,6 +41,22 @@ var migrations = []Migration{
 			);
 		`,
 	},
+	{
+		ID:          4,
+		Description: "Add created_at, long, lat columns to aps table",
+		SQL: `
+			ALTER TABLE aps ADD COLUMN created_at DATETIME;
+			ALTER TABLE aps ADD COLUMN long REAL;
+			ALTER TABLE aps ADD COLUMN lat REAL;
+		`,
+	},
+	{
+		ID:          5,
+		Description: "Set created_at to existing last_scan values",
+		SQL: `
+			UPDATE aps SET created_at = last_scan WHERE created_at IS NULL;
+		`,
+	},
 }
 
 func (d *Database) RunMigrations() error {

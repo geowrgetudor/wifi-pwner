@@ -66,10 +66,10 @@ A fast, mobile-optimized (on the go - similar to pwnagotchi) WiFi handshake capt
 - **Wordlist Support**: Download and use popular wordlists like rockyou.txt
 - **Probe Request Monitoring**: Automatic capture of client probe requests for device intelligence
 - **Discovery-Only Mode**: Scan and log networks without capturing handshakes (--discover-only)
+- **GPS Support**: Optional GPS tracking for access point location mapping (--gps)
 
 Upcoming:
 
-- GPS support
 - Interactive map
 
 ## 🔧 Hardware Requirements
@@ -184,6 +184,7 @@ sudo ./dist/wifi-pwner --interface wlan0
 - `--webui`: Enable custom web UI on port 8080 (default: `true`)
 - `--autocrack`: Path to wordlist file for automatic WPA2 handshake cracking
 - `--discover-only`: Only discover and log APs without capturing handshakes (default: `false`)
+- `--gps`: Enable GPS module for location tracking (default: `false`)
 
 ### Examples
 
@@ -211,6 +212,9 @@ sudo ./dist/wifi-pwner --interface wlan0 --autocrack /path/to/custom/wordlist.tx
 
 # Run in discovery-only mode (no handshake capture)
 sudo ./dist/wifi-pwner --interface wlan0 --discover-only
+
+# Enable GPS tracking for location mapping
+sudo ./dist/wifi-pwner --interface wlan0 --gps
 ```
 
 ## 🔐 Automatic Password Cracking
@@ -262,6 +266,8 @@ When enabled (default), access the web dashboard at `http://localhost:8080` to v
 - All discovered APs
 - Capture status (Discovered, Scanning, Captured, Failed, Cracked, Failed to crack)
 - Signal strength
+- First seen timestamp (when AP was initially discovered)
+- GPS location coordinates (when GPS is enabled)
 - Cracked passwords with copy-to-clipboard functionality
 - Handshake file paths with copy-to-clipboard functionality
 - Client probe requests - monitor device search activity

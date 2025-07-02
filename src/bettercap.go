@@ -50,6 +50,10 @@ func (b *Bettercap) Start() error {
 		apiAddress,
 	)
 
+	if b.config.GPS {
+		evalCmd += "; gps on"
+	}
+
 	b.process = exec.Command("bettercap", "-iface", b.config.Interface, "-eval", evalCmd)
 
 	if err := b.process.Start(); err != nil {
@@ -208,4 +212,34 @@ func generateRandomMAC() string {
 	}
 
 	return fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5])
+}
+
+func (b *Bettercap) GetLatestGPSData() (*GPSData, error) {
+	events, err := b.GetEvents()
+	if err != nil {
+		return nil, err
+	}
+
+	var latestGPS *GPSData
+	var latestTime time.Time
+
+	for _, event := range events {
+		if event.Tag == "gps.new" {
+			eventTime, err := time.Parse(time.RFC3339Nano, event.Time)
+			if err != nil {
+				continue
+			}
+
+			if latestGPS == nil || eventTime.After(latestTime) {
+				var gpsData GPSData
+				if err := json.Unmarshal(event.Data, &gpsData); err != nil {
+					continue
+				}
+				latestGPS = &gpsData
+				latestTime = eventTime
+			}
+		}
+	}
+
+	return latestGPS, nil
 }

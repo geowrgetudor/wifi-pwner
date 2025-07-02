@@ -33,7 +33,7 @@ func (h *HandshakeCapture) CaptureHandshake(target *Target, channels string) (st
 
 	capFile := filepath.Join(targetDir, "handshake.pcap")
 
-	h.db.SaveTarget(target, "", StatusScanning)
+	h.db.SaveTarget(target, "", StatusScanning, nil, nil)
 
 	h.bettercap.RunCommand(fmt.Sprintf("wifi.recon.channel %s; set ticker.period 2; set ticker.commands \"wifi.deauth %s\"; ticker on", target.Channel, target.BSSID))
 

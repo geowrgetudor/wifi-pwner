@@ -51,6 +51,8 @@
                     <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Encryption</th>
                     <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Signal</th>
                     <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Status</th>
+                    <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">First Seen</th>
+                    <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Location</th>
                     <th class="px-6 py-4 text-left font-semibold text-emerald-400 border-b border-zinc-600">Actions</th>
                 </tr>
             </thead>
@@ -126,6 +128,15 @@
                             </span>
                         {{end}}
                     </td>
+                    <td class="px-6 py-4 border-b border-zinc-700 text-gray-400 text-sm">
+                        {{if and .lat .long}}{{.lat}},{{.long}}{{else}}-{{end}}
+                    </td>
+                    <td class="px-6 py-4 border-b border-zinc-700 text-gray-400 text-sm">
+                        {{if .last_scan}}{{.last_scan}}{{else}}-{{end}}
+                    </td>
+                    <td class="px-6 py-4 border-b border-zinc-700 text-gray-400 text-sm">
+                        {{if .created_at}}{{.created_at}}{{else}}-{{end}}
+                    </td>
                     <td class="px-6 py-4 border-b border-zinc-700">
                         <div class="flex gap-2">
                             {{if or (eq .status "Handshake Captured") (eq .status "Cracked")}}
@@ -152,7 +163,7 @@
                 </tr>
                 {{else}}
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-gray-400 italic">No access points found</td>
+                    <td colspan="9" class="px-6 py-12 text-center text-gray-400 italic">No access points found</td>
                 </tr>
                 {{end}}{{end}}
             </tbody>
