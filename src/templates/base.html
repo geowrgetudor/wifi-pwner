@@ -17,24 +17,6 @@
               <h1 class="text-3xl font-bold text-emerald-400">
                 WiFi Pwner - {{.Title}}
               </h1>
-              {{if or (eq .Title "APs") (eq .Title "Probes")}}
-              <p class="text-sm text-gray-400 mt-1">
-                {{if eq .Title "APs"}}
-                  Showing {{.ApsData.Result.TotalCount}} total access points
-                {{else if eq .Title "Probes"}}
-                  Showing {{.ProbePageData.Result.TotalCount}} total probes
-                {{end}}
-                {{if eq .Title "APs"}}
-                  {{if gt .ApsData.Result.TotalPages 1}}
-                    (Page {{.ApsData.Result.Page}} of {{.ApsData.Result.TotalPages}})
-                  {{end}}
-                {{else if eq .Title "Probes"}}
-                  {{if gt .ProbePageData.Result.TotalPages 1}}
-                    (Page {{.ProbePageData.Result.Page}} of {{.ProbePageData.Result.TotalPages}})
-                  {{end}}
-                {{end}}
-              </p>
-              {{end}}
             </div>
           </div>
         </div>
